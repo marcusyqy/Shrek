@@ -36,6 +36,7 @@ bld/
 bin/
 bin-int/
 compile_commands/
+compile_commands.json
 
 *.vcxproj
 *.sln

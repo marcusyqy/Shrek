@@ -1,0 +1,3 @@
+[submodule "Shrek/vendor/spdlog"]
+	path = Shrek/vendor/spdlog
+	url = https://github.com/gabime/spdlog.git

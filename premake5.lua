@@ -22,6 +22,9 @@ IncludeDir = {}
 --IncludeDir["ImGui"] = "vendor/ImGui"
 --IncludeDir["ImGuizmo"] = "vendor/ImGui/ImGuizmo"
 --IncludeDir["GLFW"] = "vendor/GLFW/include"
+IncludeDir["spdlog"] = "%{wks.location}/Shrek/vendor/spdlog/include"
+
+
 
 --for grouping projects in the future
 group "Dependencies"
@@ -49,12 +52,13 @@ project "Shrek"
 		"%{prj.name}/src/**.hpp",
 		"%{prj.name}/src/**.h"
 	}
-	
+
 	includedirs {
 		--"%{IncludeDir.vulkan}",
 		--"%{IncludeDir.ImGui}",
 		--"%{IncludeDir.ImGuizmo}",
 		--"%{IncludeDir.GLFW}",
+		"%{IncludeDir.spdlog}",
 		"%{prj.name}/src"
 	}
 
@@ -80,7 +84,7 @@ project "Shrek"
 
 	--defines for msvc compiler
 	filter "system:windows"
-		systemversion "latest" 
+		systemversion "latest"
 		defines { "WIN32", "_CRT_SECURE_NO_WARNINGS" }
 
 	filter "configurations:Debug"
