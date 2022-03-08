@@ -1,11 +1,10 @@
 #include "pch.h"
 #include "Application.h"
 
-#include <iostream>
 #include "Log.h"
 
-namespace shrek
-{
+namespace shrek {
+
 Application::Application()
 {
     Log::Init();
@@ -24,7 +23,7 @@ Application::~Application()
 
 void Application::Run()
 {
-    std::cout << "Hello World" << std::endl;
+   SRK_CORE_INFO("Hello World! I am running from {}", "Shrek");
 }
 
 } // namespace shrek

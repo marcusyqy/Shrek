@@ -5,4 +5,5 @@ int main(int argc, char** argv)
 {
     shrek::Application app(argc, argv);
     app.Run();
+    return 0;
 }
