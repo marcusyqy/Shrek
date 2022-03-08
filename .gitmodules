@@ -1,3 +1,6 @@
 [submodule "Shrek/vendor/spdlog"]
 	path = Shrek/vendor/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "vendor/export-compile-commands"]
+	path = vendor/export-compile-commands
+	url = https://github.com/marcusyqy/premake-export-compile-commands.git
