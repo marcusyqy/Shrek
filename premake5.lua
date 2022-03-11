@@ -21,16 +21,14 @@ IncludeDir = {}
 --IncludeDir["vulkan"] = "vendor/VulkanSDK/include"
 --IncludeDir["ImGui"] = "vendor/ImGui"
 --IncludeDir["ImGuizmo"] = "vendor/ImGui/ImGuizmo"
---IncludeDir["GLFW"] = "vendor/GLFW/include"
+IncludeDir["GLFW"] = "%{wks.location}/Shrek/vendor/glfw/include"
 IncludeDir["spdlog"] = "%{wks.location}/Shrek/vendor/spdlog/include"
-
-
 
 --for grouping projects in the future
 group "Dependencies"
 	warnings "Off"
 	--include "vendor/ImGui"
-	--include "vendor/GLFW"
+    include "Shrek/vendor/glfw"
 
 group ""
 --start of engine project
@@ -57,7 +55,7 @@ project "Shrek"
 		--"%{IncludeDir.vulkan}",
 		--"%{IncludeDir.ImGui}",
 		--"%{IncludeDir.ImGuizmo}",
-		--"%{IncludeDir.GLFW}",
+        "%{IncludeDir.GLFW}",
 		"%{IncludeDir.spdlog}",
 		"%{prj.name}/src"
 	}

@@ -8,11 +8,11 @@ namespace shrek {
 std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
 std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
 
-void Log::Init() noexcept
+void Log::Init() SRK_NOEXCEPT
 {
-    std::vector<spdlog::sink_ptr> logSinks;
-    logSinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-    logSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("Shrek.log", true));
+    std::array<spdlog::sink_ptr, 2> logSinks{
+        std::make_shared<spdlog::sinks::stdout_color_sink_mt>(),
+        std::make_shared<spdlog::sinks::basic_file_sink_mt>("Shrek.log", true)};
 
     logSinks[0]->set_pattern("%^[%T] %n: %v%$");
     logSinks[1]->set_pattern("[%T] [%l] %n: %v");
@@ -28,7 +28,7 @@ void Log::Init() noexcept
     s_ClientLogger->flush_on(spdlog::level::trace);
 }
 
-void Log::Exit() noexcept
+void Log::Exit() SRK_NOEXCEPT
 {
     spdlog::shutdown();
 }

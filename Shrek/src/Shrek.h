@@ -1,5 +1,3 @@
 #pragma once
 
-// forward declare
-namespace shrek {
-}
+#include "defs.h"

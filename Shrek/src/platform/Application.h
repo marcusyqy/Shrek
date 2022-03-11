@@ -1,15 +1,19 @@
+#pragma once
+
+#include "defs.h"
+
 namespace shrek {
 
 class Application
 {
 public:
-    Application();
+    Application() SRK_NOEXCEPT;
 
     // for linux based applications(?)
-    Application([[maybe_unused]] int argc, [[maybe_unused]] char** argv);
-    ~Application();
+    Application([[maybe_unused]] int argc, [[maybe_unused]] char** argv) SRK_NOEXCEPT;
+    ~Application() SRK_NOEXCEPT;
 
-    void Run();
+    void Run() SRK_NOEXCEPT;
 
 private:
 };

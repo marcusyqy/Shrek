@@ -1,5 +1,7 @@
 #pragma once
 
+#include "defs.h"
+
 #pragma warning(push, 0)
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
@@ -12,11 +14,11 @@ namespace shrek {
 class Log
 {
 public:
-    static void Init() noexcept;
-    static void Exit() noexcept;
+    static void Init() SRK_NOEXCEPT;
+    static void Exit() SRK_NOEXCEPT;
 
-    inline static const std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
-    inline static const std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
+    inline static const std::shared_ptr<spdlog::logger>& GetClientLogger() SRK_NOEXCEPT { return s_ClientLogger; }
+    inline static const std::shared_ptr<spdlog::logger>& GetCoreLogger() SRK_NOEXCEPT { return s_CoreLogger; }
 
 private:
     static std::shared_ptr<spdlog::logger> s_ClientLogger;
