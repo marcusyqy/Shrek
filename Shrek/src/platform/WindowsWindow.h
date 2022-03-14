@@ -3,8 +3,7 @@
 #include "defs.h"
 #include <GLFW/glfw3.h>
 #include <windows.h>
-
-
+#include <cstdint>
 
 namespace shrek {
 
@@ -18,16 +17,13 @@ public:
     WindowsWindow(const WindowsWindow& other) = delete;
     WindowsWindow& operator=(const WindowsWindow& other) = delete;
 
-    WindowsWindow(WindowsWindow&& other) SRK_NOEXCEPT = delete;
-    WindowsWindow& operator=(WindowsWindow&& other) SRK_NOEXCEPT = delete;
-
-
-    // deprecated for now
-    [[deprecated]] void Initialize() SRK_NOEXCEPT;
+    WindowsWindow(WindowsWindow&& other) SRK_NOEXCEPT;
+    WindowsWindow& operator=(WindowsWindow&& other) SRK_NOEXCEPT;
 
     void               Update() SRK_NOEXCEPT;
     bool               ShouldClose() const SRK_NOEXCEPT;
     [[nodiscard]] HWND GetRenderContext() const SRK_NOEXCEPT;
+    void               Resize(size_t width, size_t height) SRK_NOEXCEPT;
 
 private:
     GLFWwindow* m_Window;

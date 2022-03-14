@@ -1,7 +1,7 @@
 #pragma once
 
 #include "defs.h"
-#include "WindowsWindow.h"
+#include "WindowManager.h"
 #include <memory>
 
 namespace shrek {
@@ -33,6 +33,7 @@ public:
 
 private:
     std::unique_ptr<ApplicationEssentials> m_Context;
+    WindowManager                          m_WindowManager;
     WindowsWindow                          m_Window;
 };
 

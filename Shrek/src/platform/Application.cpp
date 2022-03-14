@@ -39,7 +39,6 @@ void Application::Run() SRK_NOEXCEPT
     while (!m_Window.ShouldClose())
     {
         // seems like an opengl cmd and will replace this with a vulkan equivalent soon
-        // glClear(GL_COLOR_BUFFER_BIT);
         m_Window.Update();
     }
 

@@ -1,4 +1,3 @@
-#include "defs.h"
 #include "pch.h"
 
 #include "Log.h"
@@ -18,11 +17,12 @@ GLFWwindow* CreateGLFWwindow() SRK_NOEXCEPT
 {
     GLFWwindow* window;
 
-    if (!glfwInit())
-    {
-        SRK_CORE_ERROR("Unable to initialize GLFW!");
-        std::exit(-1);
-    }
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    //glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+    //glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+
+    // for now
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     window = glfwCreateWindow(640, 480, "Shrek Engine", NULL, NULL);
 
@@ -40,6 +40,20 @@ GLFWwindow* CreateGLFWwindow() SRK_NOEXCEPT
 
 WindowsWindow::WindowsWindow() SRK_NOEXCEPT : m_Window(CreateGLFWwindow())
 {
+    glfwSetWindowUserPointer(m_Window, this);
+
+
+    glfwSetFramebufferSizeCallback(
+        m_Window, [](GLFWwindow* window, int width, int height) SRK_NOEXCEPT {
+            WindowsWindow* parent = reinterpret_cast<WindowsWindow*>(glfwGetWindowUserPointer(window));
+            parent->Resize(width, height);
+        });
+}
+
+void WindowsWindow::Resize(size_t width, size_t height) SRK_NOEXCEPT
+{
+    (void)width;
+    (void)height;
 }
 
 WindowsWindow::~WindowsWindow() SRK_NOEXCEPT
@@ -47,20 +61,20 @@ WindowsWindow::~WindowsWindow() SRK_NOEXCEPT
     if (m_Window)
     {
         glfwDestroyWindow(m_Window);
-        glfwTerminate();
+        m_Window = nullptr;
     }
 }
 
-// WindowsWindow::WindowsWindow(WindowsWindow&& other) SRK_NOEXCEPT : WindowsWindow()
-// {
-//     *this = std::move(other);
-// }
-//
-// WindowsWindow& WindowsWindow::operator=(WindowsWindow&& other) SRK_NOEXCEPT
-// {
-//     std::swap(m_Window, other.m_Window);
-//     return *this;
-// }
+WindowsWindow::WindowsWindow(WindowsWindow&& other) SRK_NOEXCEPT : m_Window(nullptr)
+{
+    *this = std::move(other);
+}
+
+WindowsWindow& WindowsWindow::operator=(WindowsWindow&& other) SRK_NOEXCEPT
+{
+    std::swap(m_Window, other.m_Window);
+    return *this;
+}
 
 HWND WindowsWindow::GetRenderContext() const SRK_NOEXCEPT
 {
@@ -70,17 +84,11 @@ HWND WindowsWindow::GetRenderContext() const SRK_NOEXCEPT
 void WindowsWindow::Update() SRK_NOEXCEPT
 {
     glfwSwapBuffers(m_Window);
-    glfwPollEvents();
 }
 
 bool WindowsWindow::ShouldClose() const SRK_NOEXCEPT
 {
     return glfwWindowShouldClose(m_Window);
-}
-
-void WindowsWindow::Initialize() SRK_NOEXCEPT
-{
-    m_Window = CreateGLFWwindow();
 }
 
 
