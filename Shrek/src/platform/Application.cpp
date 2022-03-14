@@ -36,7 +36,7 @@ void Application::Run() SRK_NOEXCEPT
 {
     SRK_CORE_INFO("Hello World! I am running from {}", "Shrek");
 
-    while(!m_Window.ShouldClose())
+    while (!m_Window.ShouldClose())
     {
         // seems like an opengl cmd and will replace this with a vulkan equivalent soon
         // glClear(GL_COLOR_BUFFER_BIT);

@@ -33,7 +33,7 @@ public:
 
 private:
     std::unique_ptr<ApplicationEssentials> m_Context;
-    WindowsWindow m_Window;
+    WindowsWindow                          m_Window;
 };
 
 } // namespace shrek

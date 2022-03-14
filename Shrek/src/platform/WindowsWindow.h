@@ -21,9 +21,12 @@ public:
     WindowsWindow(WindowsWindow&& other) SRK_NOEXCEPT = delete;
     WindowsWindow& operator=(WindowsWindow&& other) SRK_NOEXCEPT = delete;
 
-    void Initialize() SRK_NOEXCEPT;
-    void Update() SRK_NOEXCEPT;
-    bool ShouldClose() const SRK_NOEXCEPT;
+
+    // deprecated for now
+    [[deprecated]] void Initialize() SRK_NOEXCEPT;
+
+    void               Update() SRK_NOEXCEPT;
+    bool               ShouldClose() const SRK_NOEXCEPT;
     [[nodiscard]] HWND GetRenderContext() const SRK_NOEXCEPT;
 
 private:
