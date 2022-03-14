@@ -65,19 +65,17 @@ project "Shrek"
 	}
 
 	 links {
+         "GLFW"
 		--"ImGui",
-		--"GLFW",
 		--"vulkan-1.lib"
 	 }
 
 	warnings "Extra"
 
 	defines {
-		"VK_PROTOTYPES",
-		"VK_USE_PLATFORM_WIN32_KHR",
-		"NOMINMAX",
-		"GLFW_EXPOSE_NATIVE_WIN32",
-		"GLFW_EXPOSE_NATIVE_WGL"
+		-- "VK_PROTOTYPES",
+		-- "VK_USE_PLATFORM_WIN32_KHR",
+		"NOMINMAX"
 	}
 
 	--defines for msvc compiler
