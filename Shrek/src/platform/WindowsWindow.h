@@ -7,10 +7,16 @@
 
 namespace shrek {
 
+
+struct WindowParam
+{
+    bool Resizable {true};
+};
+
 class WindowsWindow
 {
 public:
-    WindowsWindow() SRK_NOEXCEPT;
+    WindowsWindow(const WindowParam& param = {}) SRK_NOEXCEPT;
     ~WindowsWindow() SRK_NOEXCEPT;
 
     // deleting both copy and move until we can find a way to make glfw initialize be called once

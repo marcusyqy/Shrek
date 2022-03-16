@@ -18,9 +18,9 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
---IncludeDir["vulkan"] = "vendor/VulkanSDK/include"
 --IncludeDir["ImGui"] = "vendor/ImGui"
 --IncludeDir["ImGuizmo"] = "vendor/ImGui/ImGuizmo"
+IncludeDir["vulkan"] = "%{wks.location}/Shrek/vendor/vulkan/include"
 IncludeDir["GLFW"] = "%{wks.location}/Shrek/vendor/glfw/include"
 IncludeDir["spdlog"] = "%{wks.location}/Shrek/vendor/spdlog/include"
 
@@ -52,7 +52,7 @@ project "Shrek"
 	}
 
 	includedirs {
-		--"%{IncludeDir.vulkan}",
+        "%{IncludeDir.vulkan}",
 		--"%{IncludeDir.ImGui}",
 		--"%{IncludeDir.ImGuizmo}",
         "%{IncludeDir.GLFW}",
@@ -61,13 +61,13 @@ project "Shrek"
 	}
 
 	syslibdirs {
-		--"%{wks.location}/Dependencies/VulkanSDK/Lib"
+		"%{wks.location}/Shrek/vendor/vulkan"
 	}
 
 	 links {
-         "GLFW"
+         "GLFW",
 		--"ImGui",
-		--"vulkan-1.lib"
+		"vulkan-1.lib"
 	 }
 
 	warnings "Extra"

@@ -8,12 +8,11 @@
 
 #include <GLFW/glfw3native.h>
 
-
 namespace shrek {
 
 namespace {
 
-GLFWwindow* CreateGLFWwindow() SRK_NOEXCEPT
+GLFWwindow* CreateGLFWwindow(const WindowParam& param) SRK_NOEXCEPT
 {
     GLFWwindow* window;
 
@@ -22,7 +21,8 @@ GLFWwindow* CreateGLFWwindow() SRK_NOEXCEPT
     //glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
     // for now
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // hopefully this parameter doesn't provide undef behaviors
+    glfwWindowHint(GLFW_RESIZABLE, param.Resizable);
 
     window = glfwCreateWindow(640, 480, "Shrek Engine", NULL, NULL);
 
@@ -38,8 +38,10 @@ GLFWwindow* CreateGLFWwindow() SRK_NOEXCEPT
 
 } // namespace
 
-WindowsWindow::WindowsWindow() SRK_NOEXCEPT : m_Window(CreateGLFWwindow())
+WindowsWindow::WindowsWindow(const WindowParam& param) SRK_NOEXCEPT : m_Window(CreateGLFWwindow(param))
 {
+
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwSetWindowUserPointer(m_Window, this);
 
 
