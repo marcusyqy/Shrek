@@ -7,3 +7,6 @@
 [submodule "Shrek/vendor/glfw"]
 	path = Shrek/vendor/glfw
 	url = https://github.com/marcusyqy/glfw.git
+[submodule "Shrek/vendor/vulkan"]
+	path = Shrek/vendor/vulkan
+	url = https://github.com/marcusyqy/vulkan.git
