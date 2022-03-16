@@ -30,6 +30,14 @@ public:
     WindowsWindow* GetWindow(std::string_view name) const SRK_NOEXCEPT;
     WindowsWindow* ReleaseWindow(std::string_view name) SRK_NOEXCEPT;
 
+    // just to check if there are any windows
+    bool Empty() const SRK_NOEXCEPT;
+
+    void Update() SRK_NOEXCEPT;
+
+private:
+    void ValidateAndPurge() SRK_NOEXCEPT;
+
 private:
     std::unordered_map<std::string_view, WindowsWindow*> m_Windows;
 

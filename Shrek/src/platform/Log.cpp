@@ -5,6 +5,7 @@
 #include "spdlog/sinks/basic_file_sink.h"
 
 namespace shrek {
+
 std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
 std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
 

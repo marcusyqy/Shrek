@@ -4,13 +4,19 @@
 #include <GLFW/glfw3.h>
 #include <windows.h>
 #include <cstdint>
+#include <string_view>
 
 namespace shrek {
 
 
 struct WindowParam
 {
-    bool Resizable {true};
+    size_t           Width{1600};
+    size_t           Height{900};
+    bool             Resizable{true};
+    bool             Maximize{false};
+    bool             TitleBar{true};
+    std::string_view WindowName{"Shrek Engine"};
 };
 
 class WindowsWindow
@@ -30,6 +36,8 @@ public:
     bool               ShouldClose() const SRK_NOEXCEPT;
     [[nodiscard]] HWND GetRenderContext() const SRK_NOEXCEPT;
     void               Resize(size_t width, size_t height) SRK_NOEXCEPT;
+    bool               IsValid() const SRK_NOEXCEPT;
+    void               SetCallbacks() SRK_NOEXCEPT;
 
 private:
     GLFWwindow* m_Window;

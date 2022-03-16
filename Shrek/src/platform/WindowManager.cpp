@@ -40,6 +40,41 @@ WindowManager::~WindowManager() SRK_NOEXCEPT
     glfwTerminate();
 }
 
+void WindowManager::Update() SRK_NOEXCEPT
+{
+    for (auto [name, window] : m_Windows)
+    {
+        window->Update();
+    }
+
+    PollEvents();
+    ValidateAndPurge();
+}
+
+void WindowManager::ValidateAndPurge() SRK_NOEXCEPT
+{
+    auto begin = m_Windows.begin();
+    auto end   = m_Windows.end();
+    while (begin != end)
+    {
+        if (begin->second->ShouldClose())
+        {
+            // TODO(Marcus) need to optimize this part as delete will
+            //      cause too loop time.
+            SRK_CORE_TRACE("Deleting window now {}", begin->first);
+
+            // deleting because it's still the manager's ownership
+            delete begin->second;
+            begin = m_Windows.erase(begin);
+            end   = m_Windows.end();
+        }
+        else
+        {
+            ++begin;
+        }
+    }
+}
+
 void WindowManager::PollEvents() SRK_NOEXCEPT
 {
     glfwPollEvents();
@@ -66,11 +101,16 @@ WindowsWindow* WindowManager::ReleaseWindow(std::string_view name) SRK_NOEXCEPT
     if (iter != m_Windows.end())
     {
         window = iter->second;
+        // not deleting because it's for the user to delete(releasing ownership to the user)
         m_Windows.erase(iter);
     }
 
     return window;
 }
 
+bool WindowManager::Empty() const SRK_NOEXCEPT
+{
+    return m_Windows.empty();
+}
 
 } // namespace shrek

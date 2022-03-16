@@ -92,6 +92,6 @@ project "Shrek"
 		optimize "on"
 
 	filter "configurations:Dist"
-		defines { "DIST"}
+		defines { "SRK_DIST" }
 		runtime "Release"
 		optimize "on"

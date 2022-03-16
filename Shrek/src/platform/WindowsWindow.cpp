@@ -16,21 +16,28 @@ GLFWwindow* CreateGLFWwindow(const WindowParam& param) SRK_NOEXCEPT
 {
     GLFWwindow* window;
 
+    // using Vulkan.
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     //glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
-    //glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
-    // for now
-    // hopefully this parameter doesn't provide undef behaviors
+    /*
+     * for now,
+     * hopefully this parameter doesn't provide undef behaviors
+    */
+    glfwWindowHint(GLFW_MAXIMIZED, param.Maximize);
     glfwWindowHint(GLFW_RESIZABLE, param.Resizable);
+    glfwWindowHint(GLFW_DECORATED, param.TitleBar);
 
-    window = glfwCreateWindow(640, 480, "Shrek Engine", NULL, NULL);
+    window = glfwCreateWindow(
+        static_cast<int>(param.Width),
+        static_cast<int>(param.Height),
+        param.WindowName.data(), NULL, NULL);
 
     if (!window)
     {
         glfwTerminate();
         SRK_CORE_ERROR("Unable to create window from GLFW!");
-        std::exit(1);
+        return nullptr;
     }
 
     return window;
@@ -40,22 +47,22 @@ GLFWwindow* CreateGLFWwindow(const WindowParam& param) SRK_NOEXCEPT
 
 WindowsWindow::WindowsWindow(const WindowParam& param) SRK_NOEXCEPT : m_Window(CreateGLFWwindow(param))
 {
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwSetWindowUserPointer(m_Window, this);
-
-
-    glfwSetFramebufferSizeCallback(
-        m_Window, [](GLFWwindow* window, int width, int height) SRK_NOEXCEPT {
-            WindowsWindow* parent = reinterpret_cast<WindowsWindow*>(glfwGetWindowUserPointer(window));
-            parent->Resize(width, height);
-        });
+    // so that user pointer won't throw from null exception
+    if (m_Window != nullptr)
+    {
+        SetCallbacks();
+    }
 }
 
 void WindowsWindow::Resize(size_t width, size_t height) SRK_NOEXCEPT
 {
     (void)width;
     (void)height;
+}
+
+bool WindowsWindow::IsValid() const SRK_NOEXCEPT
+{
+    return m_Window != nullptr;
 }
 
 WindowsWindow::~WindowsWindow() SRK_NOEXCEPT
@@ -93,5 +100,16 @@ bool WindowsWindow::ShouldClose() const SRK_NOEXCEPT
     return glfwWindowShouldClose(m_Window);
 }
 
+void WindowsWindow::SetCallbacks() SRK_NOEXCEPT
+{
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwSetWindowUserPointer(m_Window, this);
+
+    glfwSetFramebufferSizeCallback(
+        m_Window, [](GLFWwindow* window, int width, int height) SRK_NOEXCEPT {
+            WindowsWindow* parent = reinterpret_cast<WindowsWindow*>(glfwGetWindowUserPointer(window));
+            parent->Resize(width, height);
+        });
+}
 
 } // namespace shrek

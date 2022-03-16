@@ -11,6 +11,18 @@ namespace shrek {
  *  application but doing that may introduce a race condition where we may need to have some sort of
  *  mutex to control the access of this class
  */
+class ApplicationCmdLineArgs
+{
+public:
+    ApplicationCmdLineArgs(int argc, char** argv) SRK_NOEXCEPT;
+    const char* operator[](size_t idx) const SRK_NOEXCEPT;
+    size_t      Size() const SRK_NOEXCEPT;
+
+private:
+    size_t m_Size;
+    char** m_Arguments;
+};
+
 class Application
 {
 public:
@@ -19,7 +31,7 @@ public:
     Application() SRK_NOEXCEPT;
 
     // for linux based applications(?)
-    Application([[maybe_unused]] int argc, [[maybe_unused]] char** argv) SRK_NOEXCEPT;
+    Application(ApplicationCmdLineArgs params) SRK_NOEXCEPT;
     ~Application() SRK_NOEXCEPT;
 
     void Run() SRK_NOEXCEPT;
@@ -32,9 +44,12 @@ public:
     Application operator=(Application&& other) = delete;
 
 private:
+    void Load() SRK_NOEXCEPT;
+
+private:
     std::unique_ptr<ApplicationEssentials> m_Context;
     WindowManager                          m_WindowManager;
-    WindowsWindow                          m_Window;
+    bool                                   m_Running;
 };
 
 } // namespace shrek
