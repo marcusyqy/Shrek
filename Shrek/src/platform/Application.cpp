@@ -24,18 +24,6 @@ constexpr static WindowParam loadingScreenParams{
     }()};
 } // namespace
 
-struct Application::ApplicationEssentials
-{
-    ApplicationEssentials() SRK_NOEXCEPT
-    {
-        Log::Init();
-    }
-
-    ~ApplicationEssentials() SRK_NOEXCEPT
-    {
-        Log::Exit();
-    }
-};
 
 ApplicationCmdLineArgs::ApplicationCmdLineArgs(int argc, char** argv) SRK_NOEXCEPT :
     m_Size(static_cast<size_t>(argc)),
@@ -57,9 +45,9 @@ size_t ApplicationCmdLineArgs::Size() const SRK_NOEXCEPT
 }
 
 Application::Application() SRK_NOEXCEPT :
-    m_Context(std::make_unique<ApplicationEssentials>()),
     m_WindowManager(),
-    m_Running(true)
+    m_Running(true),
+    m_RenderEngine()
 {
 }
 
@@ -70,17 +58,23 @@ Application::Application([[maybe_unused]] ApplicationCmdLineArgs params) SRK_NOE
 }
 
 // should load here
+// display loading screen here
 void Application::Load() SRK_NOEXCEPT
 {
-    WindowsWindow* loadingScreen{new WindowsWindow(loadingScreenParams)};
+    std::string_view loadingScreenName{"Shrek Loading Screen"};
+    m_WindowManager.AddWindow(loadingScreenName, new WindowsWindow(loadingScreenParams));
+    bool loading = true;
 
-    while (!loadingScreen->ShouldClose())
+    while (loading)
     {
-        loadingScreen->Update();
-        m_WindowManager.PollEvents();
+        m_WindowManager.Update();
+
+        // have to change to loading params
+        loading = !m_WindowManager.Empty();
     }
 
-    delete loadingScreen;
+    // it's safe to delete nullptr
+    delete m_WindowManager.ReleaseWindow(loadingScreenName);
 }
 
 Application::~Application() SRK_NOEXCEPT = default;
@@ -101,7 +95,7 @@ void Application::Run() SRK_NOEXCEPT
         params.WindowName = "Shrek Engine";
         params.TitleBar   = true;
     }
-    m_WindowManager.AddWindow("Shrek Loading Screen", new WindowsWindow(params));
+    m_WindowManager.AddWindow("Shrek Engine", new WindowsWindow(params));
 
     while (m_Running)
     {

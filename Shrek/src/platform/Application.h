@@ -4,6 +4,8 @@
 #include "WindowManager.h"
 #include <memory>
 
+#include "render/Engine.h"
+
 namespace shrek {
 
 /*
@@ -26,8 +28,6 @@ private:
 class Application
 {
 public:
-    struct ApplicationEssentials;
-
     Application() SRK_NOEXCEPT;
 
     // for linux based applications(?)
@@ -47,9 +47,9 @@ private:
     void Load() SRK_NOEXCEPT;
 
 private:
-    std::unique_ptr<ApplicationEssentials> m_Context;
     WindowManager                          m_WindowManager;
     bool                                   m_Running;
+    render::Engine m_RenderEngine;
 };
 
 } // namespace shrek

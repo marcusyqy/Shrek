@@ -11,18 +11,11 @@
 
 namespace shrek {
 
-bool WindowManager::s_IsSingleton = false;
+using Singleton = base::Singleton<WindowManager>;
 
 WindowManager::WindowManager() SRK_NOEXCEPT
+    : Singleton("WindowManager")
 {
-    if (s_IsSingleton)
-    {
-        SRK_CORE_ERROR("WindowContext has already been created once!!");
-        std::exit(-1);
-    }
-
-    s_IsSingleton = true;
-
     if (!glfwInit())
     {
         SRK_CORE_ERROR("Unable to initialize WindowContext!");

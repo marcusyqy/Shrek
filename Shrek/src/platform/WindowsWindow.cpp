@@ -16,6 +16,8 @@ GLFWwindow* CreateGLFWwindow(const WindowParam& param) SRK_NOEXCEPT
 {
     GLFWwindow* window;
 
+    (void)glfwVulkanSupported();
+
     // using Vulkan.
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     //glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);

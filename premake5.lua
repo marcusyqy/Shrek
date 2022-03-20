@@ -73,8 +73,8 @@ project "Shrek"
 	warnings "Extra"
 
 	defines {
-		-- "VK_PROTOTYPES",
-		-- "VK_USE_PLATFORM_WIN32_KHR",
+        "VK_PROTOTYPES",
+        "VK_USE_PLATFORM_WIN32_KHR",
 		"NOMINMAX"
 	}
 

@@ -6,10 +6,11 @@
 #include <windows.h>
 #include <memory>
 #include "WindowsWindow.h"
+#include "base/Singleton.h"
 
 namespace shrek {
 
-class WindowManager
+class WindowManager : private base::Singleton<WindowManager>
 {
 public:
     WindowManager() SRK_NOEXCEPT;
@@ -40,8 +41,5 @@ private:
 
 private:
     std::unordered_map<std::string_view, WindowsWindow*> m_Windows;
-
-private:
-    static bool s_IsSingleton;
 };
 } // namespace shrek
