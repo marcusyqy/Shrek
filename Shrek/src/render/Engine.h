@@ -12,6 +12,7 @@ public:
     Engine() SRK_NOEXCEPT;
     ~Engine() SRK_NOEXCEPT;
 
+    // Honestly copy and move will be implicitly deleted from Singleton base class but should we explicitly do it?
     Engine& operator=(const Engine& other) SRK_NOEXCEPT = delete;
     Engine(const Engine& other) SRK_NOEXCEPT            = delete;
     Engine(Engine&& other) SRK_NOEXCEPT                 = delete;

@@ -11,6 +11,26 @@ namespace shrek::render {
 
 namespace {
 
+// need to load these two functions due to it being external/extended
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+{
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr)
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    else
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+}
+
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
+{
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr)
+        func(instance, debugMessenger, pAllocator);
+    else
+        SRK_CORE_WARN("unable to clean up debugMesssenger correctly");
+}
+
+
 constexpr bool        shouldPrintExtensions  = false;
 constexpr bool        enableValidationLayers = true;
 constexpr const char* debugUtilsExtName      = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
@@ -24,20 +44,21 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     const VkDebugUtilsMessengerCallbackDataEXT*      pCallbackData,
     [[maybe_unused]] void*                           pUserData)
 {
+    static constexpr const char* message = "[[VK_RENDERER]]: {}";
 
     switch (messageSeverity)
     {
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-            SRK_CORE_TRACE("[[RENDERER]] vkDebug: {}", pCallbackData->pMessage);
+            SRK_CORE_TRACE(message, pCallbackData->pMessage);
             break;
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-            SRK_CORE_INFO("[[RENDERER]] vkDebug: {}", pCallbackData->pMessage);
+            SRK_CORE_INFO(message, pCallbackData->pMessage);
             break;
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-            SRK_CORE_WARN("[[RENDERER]] vkDebug: {}", pCallbackData->pMessage);
+            SRK_CORE_WARN(message, pCallbackData->pMessage);
             break;
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-            SRK_CORE_ERROR("[[RENDERER]] vkDebug: {}", pCallbackData->pMessage);
+            SRK_CORE_ERROR(message, pCallbackData->pMessage);
             break;
         default:
             break;
@@ -103,7 +124,8 @@ bool validateSupportOnLayers(const char** glfwExtensions, uint32_t glfwExtension
             }
         }
 
-        if (!found) // not found means 1 or more glfw layer not supported
+        // not found means 1 or more glfw layer not supported
+        if (!found)
             return false;
     }
 
@@ -122,10 +144,8 @@ bool checkValidationLayerSupport() SRK_NOEXCEPT
     {
         for (const auto& layerProp : layerProps)
         {
-            if (strcmp(layerName, layerProp.layerName) == 0)
-            {
+            if (strcmp(layerName, layerProp.layerName) == 0) // check for at least one support
                 return true;
-            }
         }
     }
 
@@ -158,51 +178,84 @@ std::vector<const char*> getRequiredExtensions()
     return extensions;
 }
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-    if (func != nullptr) {
-        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-    } else {
-        return VK_ERROR_EXTENSION_NOT_PRESENT;
-    }
-}
+// to reuse for debugging of instance
+VkDebugUtilsMessengerCreateInfoEXT populateDebugUtilsMessengerInfo() SRK_NOEXCEPT
+{
+    VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+    createInfo.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType     = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = debugCallback;
+    createInfo.pUserData       = nullptr; // Optional
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-    if (func != nullptr) {
-        func(instance, debugMessenger, pAllocator);
-    }
+    return createInfo;
 }
-
 
 VkDebugUtilsMessengerEXT setUpDebugMessenger(VkInstance instance) SRK_NOEXCEPT
 {
-    VkDebugUtilsMessengerCreateInfoEXT createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    createInfo.pfnUserCallback = debugCallback;
-    createInfo.pUserData = nullptr; // Optional
+    VkDebugUtilsMessengerCreateInfoEXT createInfo{populateDebugUtilsMessengerInfo()};
 
-    VkDebugUtilsMessengerEXT debugMessenger{nullptr};
-    VkResult result = CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger);
-    if(result != VK_SUCCESS)
+    VkDebugUtilsMessengerEXT debugMessenger{VK_NULL_HANDLE};
+    VkResult                 result = CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger);
+
+    if (result != VK_SUCCESS)
         SRK_CORE_WARN("vkCreateDebugUtilsMessenger failed with {}", result);
 
     return debugMessenger;
 }
 
+// TODO(Marcus): can change to check charging power and all
+bool isDeviceSuitable(VkPhysicalDevice device)
+{
+    VkPhysicalDeviceProperties properties;
+    vkGetPhysicalDeviceProperties(device, &properties);
+
+    VkPhysicalDeviceFeatures features;
+    vkGetPhysicalDeviceFeatures(device, &features);
+
+    // get discrete gpu and geometry shader
+    return properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && features.geometryShader;
+}
+
+
+VkPhysicalDevice pickPhysicalDevice(VkInstance instance) SRK_NOEXCEPT
+{
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+    for (const auto device : devices)
+    {
+        if (isDeviceSuitable(device))
+            return device;
+    }
+
+    SRK_CORE_CRITICAL("Vulkan unable to find the right physical device");
+
+    // this is if all devices are not suitable
+    // for now just exit. maybe we can change the parameters of how to find a right physical device
+    std::exit(-1);
+
+    // this does not need to be returned
+    return VK_NULL_HANDLE;
+}
+
+
 VkResult createInstance(VkInstance& instance) SRK_NOEXCEPT
 {
-    VkApplicationInfo    appInfo = createAppInfo();
+    VkApplicationInfo                  appInfo{createAppInfo()};
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{populateDebugUtilsMessengerInfo()};
+
     VkInstanceCreateInfo createInfo{};
     createInfo.sType            = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
 
-    const auto glfwExtensions = getRequiredExtensions();
-
+    const auto glfwExtensions          = getRequiredExtensions();
     createInfo.enabledExtensionCount   = static_cast<uint32_t>(glfwExtensions.size());
     createInfo.ppEnabledExtensionNames = glfwExtensions.data();
+    createInfo.pNext                   = enableValidationLayers ? &debugCreateInfo : nullptr;
 
     if (enableValidationLayers)
     {
@@ -213,7 +266,7 @@ VkResult createInstance(VkInstance& instance) SRK_NOEXCEPT
         }
         else
         {
-            createInfo.enabledLayerCount = 0;
+            createInfo.enabledLayerCount   = 0;
             createInfo.ppEnabledLayerNames = nullptr;
             SRK_CORE_ERROR("Validation layer support requested but not supported!");
         }
@@ -221,8 +274,6 @@ VkResult createInstance(VkInstance& instance) SRK_NOEXCEPT
 
     return vkCreateInstance(&createInfo, nullptr, &instance);
 }
-
-
 
 } // namespace
 
@@ -251,22 +302,23 @@ Engine::Engine() SRK_NOEXCEPT :
         std::exit(result);
     }
 
-    // if validate
-    if(enableValidationLayers)
-    {
+    // if validate warning is inside the debug messenger
+    if (enableValidationLayers)
         m_DebugHandler = setUpDebugMessenger(m_Instance);
-        if(m_DebugHandler)
-        {
-        }
-        else
-            SRK_CORE_WARN("Unable to setUpDebugMessenger after request for it!");
+
+    m_Gpu = pickPhysicalDevice(m_Instance);
+    if (result != VK_SUCCESS)
+    {
+        // stop here
+        SRK_CORE_CRITICAL("Vulkan Instance unable to be created! {}", result);
+        std::exit(result);
     }
 }
 
 Engine::~Engine() SRK_NOEXCEPT
 {
     // destroy in reverse order
-    if (enableValidationLayers && m_DebugHandler)
+    if (enableValidationLayers && m_DebugHandler != VK_NULL_HANDLE)
         DestroyDebugUtilsMessengerEXT(m_Instance, m_DebugHandler, nullptr);
 
     vkDestroyInstance(m_Instance, nullptr);

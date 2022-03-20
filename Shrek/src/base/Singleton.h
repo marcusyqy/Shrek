@@ -21,6 +21,14 @@ public:
         s_IsOnly = true;
     }
 
+    // force cannot copy
+    Singleton(const Singleton& other) = delete;
+    Singleton& operator=(const Singleton& other) = delete;
+
+    // move can probably be done but... should we?
+    Singleton(Singleton&& other) = delete;
+    Singleton& operator=(Singleton&& other) = delete;
+
 private:
     static bool s_IsOnly;
 
