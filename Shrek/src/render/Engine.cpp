@@ -12,7 +12,7 @@ namespace shrek::render {
 namespace {
 
 // need to load these two functions due to it being external/extended
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) SRK_NOEXCEPT
 {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr)
@@ -21,7 +21,7 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
         return VK_ERROR_EXTENSION_NOT_PRESENT;
 }
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) SRK_NOEXCEPT
 {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr)
@@ -33,6 +33,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 
 constexpr bool        shouldPrintExtensions  = false;
 constexpr bool        enableValidationLayers = true;
+constexpr bool        shouldPrintDebugLogs   = true;
 constexpr const char* debugUtilsExtName      = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 
 constexpr std::array<const char*, 1> validationLayers = {
@@ -42,7 +43,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT           messageSeverity,
     [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT*      pCallbackData,
-    [[maybe_unused]] void*                           pUserData)
+    [[maybe_unused]] void*                           pUserData) SRK_NOEXCEPT
 {
     static constexpr const char* message = "[[VK_RENDERER]]: {}";
 
@@ -82,7 +83,7 @@ VkApplicationInfo createAppInfo() SRK_NOEXCEPT
     return appInfo;
 }
 
-bool validateSupportOnLayers(const char** glfwExtensions, uint32_t glfwExtensionCount)
+bool validateSupportOnLayers(const char** glfwExtensions, uint32_t glfwExtensionCount) SRK_NOEXCEPT
 {
     uint32_t extensionCount{};
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -153,7 +154,7 @@ bool checkValidationLayerSupport() SRK_NOEXCEPT
 }
 
 
-std::vector<const char*> getRequiredExtensions()
+std::vector<const char*> getRequiredExtensions() SRK_NOEXCEPT
 {
     uint32_t     glfwExtensionCount{};
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -183,7 +184,7 @@ VkDebugUtilsMessengerCreateInfoEXT populateDebugUtilsMessengerInfo() SRK_NOEXCEP
 {
     VkDebugUtilsMessengerCreateInfoEXT createInfo{};
     createInfo.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
     createInfo.messageType     = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     createInfo.pfnUserCallback = debugCallback;
     createInfo.pUserData       = nullptr; // Optional
@@ -204,17 +205,58 @@ VkDebugUtilsMessengerEXT setUpDebugMessenger(VkInstance instance) SRK_NOEXCEPT
     return debugMessenger;
 }
 
+
 // TODO(Marcus): can change to check charging power and all
-bool isDeviceSuitable(VkPhysicalDevice device)
+int32_t scorePhysicalDevice(VkPhysicalDevice device) SRK_NOEXCEPT
 {
+    uint32_t score{};
+
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(device, &properties);
 
     VkPhysicalDeviceFeatures features;
     vkGetPhysicalDeviceFeatures(device, &features);
 
-    // get discrete gpu and geometry shader
-    return properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && features.geometryShader;
+    if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        score += 1000;
+
+    // textures affect how strong the device is.
+    score += properties.limits.maxImageDimension2D;
+
+    if (!features.geometryShader) // should be valued as high as a discrete gpu.
+        score -= 1000;
+
+    if (shouldPrintDebugLogs)
+        SRK_CORE_TRACE("Debugging score: {} and device name: {}", score, properties.deviceName);
+
+    return score;
+}
+
+QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) SRK_NOEXCEPT
+{
+    uint32_t queueFamilyCount{};
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilyProps{queueFamilyCount};
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilyProps.data());
+
+    QueueFamilyIndices indices{};
+    uint32_t           idx{};
+    for (const auto& queueFamilyProp : queueFamilyProps)
+    {
+        if ((queueFamilyProp.queueFlags & VK_QUEUE_GRAPHICS_BIT) == VK_QUEUE_GRAPHICS_BIT)
+        {
+            indices.Graphics = idx;
+        }
+        ++idx;
+    }
+    return indices;
+}
+
+bool isDeviceSuitable(VkPhysicalDevice device) SRK_NOEXCEPT
+{
+    QueueFamilyIndices indices = findQueueFamilies(device);
+    return indices.Graphics.has_value();
 }
 
 
@@ -226,12 +268,42 @@ VkPhysicalDevice pickPhysicalDevice(VkInstance instance) SRK_NOEXCEPT
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
+    size_t  idx{}, highestScoreIdx{};
+    int32_t highestScore = std::numeric_limits<int32_t>::lowest();
+
+    if (shouldPrintDebugLogs)
+        SRK_CORE_TRACE("Num of devices : {}", deviceCount, devices.size());
+
+    bool foundSuitableDevice = false;
     for (const auto device : devices)
     {
-        if (isDeviceSuitable(device))
-            return device;
+        if(isDeviceSuitable(device))
+        {
+            int32_t score = scorePhysicalDevice(device);
+            if (score > highestScore)
+            {
+                highestScoreIdx = idx;
+                highestScore    = score;
+            }
+        }
+        else
+            foundSuitableDevice = true;
+
+        ++idx;
     }
 
+    if (foundSuitableDevice && highestScoreIdx < devices.size())
+    {
+        if (shouldPrintDebugLogs)
+        {
+            VkPhysicalDeviceProperties properties;
+            vkGetPhysicalDeviceProperties(devices[highestScoreIdx], &properties);
+            SRK_CORE_TRACE("Vulkan chose the gpu : {}", properties.deviceName);
+        }
+        return devices[highestScoreIdx];
+    }
+
+    // there should be no devices available(?)
     SRK_CORE_CRITICAL("Vulkan unable to find the right physical device");
 
     // this is if all devices are not suitable

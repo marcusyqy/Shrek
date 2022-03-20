@@ -1,10 +1,17 @@
 #pragma once
 #include "defs.h"
+#include <optional>
+
 #include "vulkan.h"
 #include "base/Singleton.h"
 
-
 namespace shrek::render {
+
+struct QueueFamilyIndices
+{
+    std::optional<uint32_t> Graphics;
+    std::optional<uint32_t> Compute;
+};
 
 class Engine : private base::Singleton<Engine>
 {
@@ -23,5 +30,7 @@ private:
     VkPhysicalDevice         m_Gpu;
     VkDevice                 m_LGpu; // L being logical
     VkDebugUtilsMessengerEXT m_DebugHandler;
+
+    QueueFamilyIndices m_QueueFamily;
 };
 } // namespace shrek::render
