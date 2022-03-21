@@ -52,8 +52,7 @@ void WindowManager::ValidateAndPurge() SRK_NOEXCEPT
     {
         if (begin->second->ShouldClose())
         {
-            // TODO(Marcus) need to optimize this part as delete will
-            //      cause too loop time.
+            // TODO: need to optimize this part as delete will cause too loop time.
             SRK_CORE_TRACE("Deleting window now {}", begin->first);
 
             // deleting because it's still the manager's ownership

@@ -169,7 +169,7 @@ std::vector<const char*> getRequiredExtensions() SRK_NOEXCEPT
     if (enableValidationLayers)
     {
         extensions.emplace_back(debugUtilsExtName);
-        if (!validateSupportOnLayers(extensions.data(), static_cast<uint32_t>(extensions.size()))) // lazy TODO(Marcus): change this to support both the top and bottom
+        if (!validateSupportOnLayers(extensions.data(), static_cast<uint32_t>(extensions.size()))) //  TODO: change this to support both the top and bottom
         {
             SRK_CORE_ERROR("validation layer requested but debug extension not present!");
             extensions.pop_back();
@@ -206,7 +206,7 @@ VkDebugUtilsMessengerEXT setUpDebugMessenger(VkInstance instance) SRK_NOEXCEPT
 }
 
 
-// TODO(Marcus): can change to check charging power and all
+// TODO: can change to check charging power and all
 int32_t scorePhysicalDevice(VkPhysicalDevice device) SRK_NOEXCEPT
 {
     uint32_t score{};

@@ -18,7 +18,7 @@ constexpr static WindowParam loadingScreenParams{
             params.Maximize   = false;
             params.Resizable  = false;
             params.WindowName = "Shrek Loading Screen";
-            params.TitleBar   = true; // TODO(Marcus): set this to false when Renderer is up.
+            params.TitleBar   = true; // TODO: set this to false when Renderer is up.
         }
         return params;
     }()};
