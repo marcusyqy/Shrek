@@ -1,8 +1,10 @@
 #include "pch.h"
 #include "Debug.h"
+#include "platform/Log.h"
 
 
 namespace shrek::render::helper {
+
 
 std::string_view ToString(VkResult result) SRK_NOEXCEPT
 {
@@ -60,6 +62,25 @@ std::string_view ToString(VkResult result) SRK_NOEXCEPT
 
 
 namespace shrek::render {
+
+// need to load these two functions due to it being external/extended
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) SRK_NOEXCEPT
+{
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr)
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    else
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+}
+
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) SRK_NOEXCEPT
+{
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr)
+        func(instance, debugMessenger, pAllocator);
+    else
+        SRK_CORE_WARN("unable to clean up debugMesssenger correctly");
+}
 
 std::ostream& operator<<(std::ostream& os, VkResult result)
 {

@@ -2,14 +2,14 @@
 #include "defs.h"
 #include <optional>
 
-#include "vulkan.h"
+#include <vulkan.h>
 #include "base/Singleton.h"
 
 namespace shrek::render {
 
 struct QueueFamilyIndices
 {
-    std::optional<uint32_t> Graphics;
+    uint32_t Graphics;
     std::optional<uint32_t> Compute;
 };
 
@@ -32,5 +32,6 @@ private:
     VkDebugUtilsMessengerEXT m_DebugHandler;
 
     QueueFamilyIndices m_QueueFamily;
+    VkQueue m_Queue;
 };
 } // namespace shrek::render

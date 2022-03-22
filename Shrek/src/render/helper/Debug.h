@@ -15,6 +15,9 @@ std::string_view ToString(VkResult result) SRK_NOEXCEPT;
 
 namespace shrek::render {
 
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) SRK_NOEXCEPT;
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) SRK_NOEXCEPT;
+
 // put this function in this namespace so that it can be used without scope within shrek::render
  std::ostream& operator<<(std::ostream& os, VkResult result);
 

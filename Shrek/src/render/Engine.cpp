@@ -11,25 +11,28 @@ namespace shrek::render {
 
 namespace {
 
-// need to load these two functions due to it being external/extended
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) SRK_NOEXCEPT
+struct QueueFamilyIndicesHelper
 {
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-    if (func != nullptr)
-        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-    else
-        return VK_ERROR_EXTENSION_NOT_PRESENT;
-}
+    std::optional<uint32_t> Graphics{std::nullopt};
+    std::optional<uint32_t> Compute{std::nullopt};
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) SRK_NOEXCEPT
-{
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-    if (func != nullptr)
-        func(instance, debugMessenger, pAllocator);
-    else
-        SRK_CORE_WARN("unable to clean up debugMesssenger correctly");
-}
+    operator QueueFamilyIndices() const SRK_NOEXCEPT
+    {
+        QueueFamilyIndices indices{};
 
+        // TODO: change this to assert
+        if (!Graphics.has_value())
+        {
+            SRK_CORE_CRITICAL("Could not find graphics queue but continued moving to this point of the program!");
+            std::exit(1);
+        }
+
+        indices.Graphics = Graphics.value();
+        indices.Compute  = Compute;
+
+        return indices;
+    }
+};
 
 constexpr bool        shouldPrintExtensions  = false;
 constexpr bool        enableValidationLayers = true;
@@ -232,7 +235,7 @@ int32_t scorePhysicalDevice(VkPhysicalDevice device) SRK_NOEXCEPT
     return score;
 }
 
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) SRK_NOEXCEPT
+QueueFamilyIndicesHelper findQueueFamilies(VkPhysicalDevice device) SRK_NOEXCEPT
 {
     uint32_t queueFamilyCount{};
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -240,8 +243,8 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) SRK_NOEXCEPT
     std::vector<VkQueueFamilyProperties> queueFamilyProps{queueFamilyCount};
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilyProps.data());
 
-    QueueFamilyIndices indices{};
-    uint32_t           idx{};
+    QueueFamilyIndicesHelper indices{};
+    uint32_t                 idx{};
     for (const auto& queueFamilyProp : queueFamilyProps)
     {
         if ((queueFamilyProp.queueFlags & VK_QUEUE_GRAPHICS_BIT) == VK_QUEUE_GRAPHICS_BIT)
@@ -255,7 +258,7 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) SRK_NOEXCEPT
 
 bool isDeviceSuitable(VkPhysicalDevice device) SRK_NOEXCEPT
 {
-    QueueFamilyIndices indices = findQueueFamilies(device);
+    QueueFamilyIndicesHelper indices = findQueueFamilies(device);
     return indices.Graphics.has_value();
 }
 
@@ -277,17 +280,16 @@ VkPhysicalDevice pickPhysicalDevice(VkInstance instance) SRK_NOEXCEPT
     bool foundSuitableDevice = false;
     for (const auto device : devices)
     {
-        if(isDeviceSuitable(device))
+        if (isDeviceSuitable(device))
         {
             int32_t score = scorePhysicalDevice(device);
             if (score > highestScore)
             {
-                highestScoreIdx = idx;
-                highestScore    = score;
+                highestScoreIdx     = idx;
+                highestScore        = score;
+                foundSuitableDevice = true;
             }
         }
-        else
-            foundSuitableDevice = true;
 
         ++idx;
     }
@@ -314,6 +316,40 @@ VkPhysicalDevice pickPhysicalDevice(VkInstance instance) SRK_NOEXCEPT
     return VK_NULL_HANDLE;
 }
 
+VkResult createDevice(VkPhysicalDevice physicalDevice, QueueFamilyIndices indices, VkDevice& device) SRK_NOEXCEPT
+{
+    VkDeviceQueueCreateInfo queueCreateInfo{};
+    const float             queuePriorities{1.f};
+
+    queueCreateInfo.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = indices.Graphics;
+    queueCreateInfo.queueCount       = 1;
+    queueCreateInfo.pQueuePriorities = &queuePriorities;
+
+    // HACK: only leaving it as it is for now because we haven't found what to do with it.
+    VkPhysicalDeviceFeatures features{};
+
+    VkDeviceCreateInfo createInfo{};
+    createInfo.sType                = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pQueueCreateInfos    = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = 1;
+    createInfo.pEnabledFeatures     = &features;
+    createInfo.pNext                = nullptr;
+
+    createInfo.enabledExtensionCount = 0;
+
+    if (enableValidationLayers)
+    {
+        createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
+        createInfo.ppEnabledLayerNames = validationLayers.data();
+    }
+    else
+    {
+        createInfo.enabledLayerCount = 0;
+    }
+
+    return vkCreateDevice(physicalDevice, &createInfo, nullptr, &device);
+}
 
 VkResult createInstance(VkInstance& instance) SRK_NOEXCEPT
 {
@@ -379,16 +415,22 @@ Engine::Engine() SRK_NOEXCEPT :
         m_DebugHandler = setUpDebugMessenger(m_Instance);
 
     m_Gpu = pickPhysicalDevice(m_Instance);
+    // only when physical device is found can we look for the queue families
+    m_QueueFamily = findQueueFamilies(m_Gpu);
+
+    result = createDevice(m_Gpu, m_QueueFamily, m_LGpu);
     if (result != VK_SUCCESS)
     {
-        // stop here
-        SRK_CORE_CRITICAL("Vulkan Instance unable to be created! {}", result);
+        SRK_CORE_CRITICAL("Device cannot be created with error: {}", result);
         std::exit(result);
     }
+
+    vkGetDeviceQueue(m_LGpu, m_QueueFamily.Graphics, 0, &m_Queue);
 }
 
 Engine::~Engine() SRK_NOEXCEPT
 {
+    vkDestroyDevice(m_LGpu, nullptr);
     // destroy in reverse order
     if (enableValidationLayers && m_DebugHandler != VK_NULL_HANDLE)
         DestroyDebugUtilsMessengerEXT(m_Instance, m_DebugHandler, nullptr);

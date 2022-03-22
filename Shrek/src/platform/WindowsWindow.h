@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <string_view>
 
+#include "render/Surface.h"
+
 namespace shrek {
 
 
@@ -39,8 +41,10 @@ public:
     bool               IsValid() const SRK_NOEXCEPT;
     void               SetCallbacks() SRK_NOEXCEPT;
 
+    GLFWwindow* Raw() const SRK_NOEXCEPT { return m_Window; };
+
 private:
     GLFWwindow* m_Window;
+    render::Surface m_Surface;
 };
 } // namespace shrek
-
