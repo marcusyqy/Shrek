@@ -9,6 +9,8 @@
 
 namespace shrek::render {
 
+using helper::QueueFamilyIndices;
+
 namespace {
 
 struct QueueFamilyIndicesHelper
@@ -41,6 +43,9 @@ constexpr const char* debugUtilsExtName      = VK_EXT_DEBUG_UTILS_EXTENSION_NAME
 
 constexpr std::array<const char*, 1> validationLayers = {
     "VK_LAYER_KHRONOS_validation"};
+
+const std::array<const char*, 1> deviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT           messageSeverity,
@@ -258,6 +263,31 @@ QueueFamilyIndicesHelper findQueueFamilies(VkPhysicalDevice device) SRK_NOEXCEPT
 
 bool isDeviceSuitable(VkPhysicalDevice device) SRK_NOEXCEPT
 {
+    // check for extension support
+    uint32_t extensionCount{};
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+    for (const auto& deviceExtension : deviceExtensions)
+    {
+        bool found = false;
+        for (const auto& availableExtension : availableExtensions)
+        {
+            if (strcmp(deviceExtension, availableExtension.extensionName) == 0)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            SRK_CORE_WARN("Device extension of {} isn't found!", deviceExtension);
+            return false;
+        }
+    }
+
     QueueFamilyIndicesHelper indices = findQueueFamilies(device);
     return indices.Graphics.has_value();
 }

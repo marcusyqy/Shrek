@@ -62,7 +62,7 @@ Application::Application([[maybe_unused]] ApplicationCmdLineArgs params) SRK_NOE
 void Application::Load() SRK_NOEXCEPT
 {
     std::string_view loadingScreenName{"Shrek Loading Screen"};
-    m_WindowManager.AddWindow(loadingScreenName, new WindowsWindow(loadingScreenParams));
+    m_WindowManager.AddWindow(loadingScreenName, new WindowsWindow(m_RenderEngine, loadingScreenParams));
     bool loading = true;
 
     while (loading)
@@ -95,7 +95,7 @@ void Application::Run() SRK_NOEXCEPT
         params.WindowName = "Shrek Engine";
         params.TitleBar   = true;
     }
-    m_WindowManager.AddWindow("Shrek Engine", new WindowsWindow(params));
+    m_WindowManager.AddWindow("Shrek Engine", new WindowsWindow(m_RenderEngine, params));
 
     while (m_Running)
     {

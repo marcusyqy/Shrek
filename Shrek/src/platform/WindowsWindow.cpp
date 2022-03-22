@@ -47,7 +47,9 @@ GLFWwindow* CreateGLFWwindow(const WindowParam& param) SRK_NOEXCEPT
 
 } // namespace
 
-WindowsWindow::WindowsWindow(const WindowParam& param) SRK_NOEXCEPT : m_Window(CreateGLFWwindow(param))
+WindowsWindow::WindowsWindow(const render::Engine& engine, const WindowParam& param) SRK_NOEXCEPT :
+    m_Window(CreateGLFWwindow(param)),
+    m_Surface(engine.GetInstance(), engine.GetGpu(), m_Window, engine.GetQueueFamilyIndices())
 {
     // so that user pointer won't throw from null exception
     if (m_Window != nullptr)
@@ -76,7 +78,7 @@ WindowsWindow::~WindowsWindow() SRK_NOEXCEPT
     }
 }
 
-WindowsWindow::WindowsWindow(WindowsWindow&& other) SRK_NOEXCEPT : m_Window(nullptr)
+WindowsWindow::WindowsWindow(WindowsWindow&& other) SRK_NOEXCEPT : m_Window(nullptr), m_Surface()
 {
     *this = std::move(other);
 }

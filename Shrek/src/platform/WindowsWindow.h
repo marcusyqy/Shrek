@@ -7,6 +7,7 @@
 #include <string_view>
 
 #include "render/Surface.h"
+#include "render/Engine.h"
 
 namespace shrek {
 
@@ -24,7 +25,7 @@ struct WindowParam
 class WindowsWindow
 {
 public:
-    WindowsWindow(const WindowParam& param = {}) SRK_NOEXCEPT;
+    WindowsWindow(const render::Engine& engine, const WindowParam& param = {}) SRK_NOEXCEPT;
     ~WindowsWindow() SRK_NOEXCEPT;
 
     // deleting both copy and move until we can find a way to make glfw initialize be called once

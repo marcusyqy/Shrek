@@ -4,14 +4,10 @@
 
 #include <vulkan.h>
 #include "base/Singleton.h"
+#include "helper/QueueFamilyIndices.h"
 
 namespace shrek::render {
 
-struct QueueFamilyIndices
-{
-    uint32_t Graphics;
-    std::optional<uint32_t> Compute;
-};
 
 class Engine : private base::Singleton<Engine>
 {
@@ -25,13 +21,19 @@ public:
     Engine(Engine&& other) SRK_NOEXCEPT                 = delete;
     Engine& operator=(Engine&& other) SRK_NOEXCEPT = delete;
 
+    // Vulkan API
+    inline VkInstance                        GetInstance() const SRK_NOEXCEPT { return m_Instance; };
+    inline VkPhysicalDevice                  GetGpu() const SRK_NOEXCEPT { return m_Gpu; };
+    inline VkDevice                          GetLogicalGpu() const SRK_NOEXCEPT { return m_LGpu; };
+    inline const helper::QueueFamilyIndices& GetQueueFamilyIndices() const SRK_NOEXCEPT { return m_QueueFamily; }
+
 private:
     VkInstance               m_Instance;
     VkPhysicalDevice         m_Gpu;
     VkDevice                 m_LGpu; // L being logical
     VkDebugUtilsMessengerEXT m_DebugHandler;
 
-    QueueFamilyIndices m_QueueFamily;
-    VkQueue m_Queue;
+    helper::QueueFamilyIndices m_QueueFamily;
+    VkQueue                    m_Queue;
 };
 } // namespace shrek::render
