@@ -22,6 +22,7 @@ struct WindowParam
     std::string_view WindowName{"Shrek Engine"};
 };
 
+// TODO: Should we even have this class if the render/Surface is going to have ownership of the GLFWwindow ptr?
 class WindowsWindow
 {
 public:
@@ -42,10 +43,9 @@ public:
     bool               IsValid() const SRK_NOEXCEPT;
     void               SetCallbacks() SRK_NOEXCEPT;
 
-    GLFWwindow* Raw() const SRK_NOEXCEPT { return m_Window; };
+    GLFWwindow* Raw() const SRK_NOEXCEPT { return m_Surface.GetWindow(); };
 
 private:
-    GLFWwindow* m_Window;
     render::Surface m_Surface;
 };
 } // namespace shrek

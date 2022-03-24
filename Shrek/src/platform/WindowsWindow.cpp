@@ -16,8 +16,6 @@ GLFWwindow* CreateGLFWwindow(const WindowParam& param) SRK_NOEXCEPT
 {
     GLFWwindow* window;
 
-    (void)glfwVulkanSupported();
-
     // using Vulkan.
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     //glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
@@ -48,11 +46,10 @@ GLFWwindow* CreateGLFWwindow(const WindowParam& param) SRK_NOEXCEPT
 } // namespace
 
 WindowsWindow::WindowsWindow(const render::Engine& engine, const WindowParam& param) SRK_NOEXCEPT :
-    m_Window(CreateGLFWwindow(param)),
-    m_Surface(engine.GetInstance(), engine.GetGpu(), m_Window, engine.GetQueueFamilyIndices())
+    m_Surface(engine.GetInstance(), engine.GetGpu(), engine.GetLogicalGpu(), CreateGLFWwindow(param), engine.GetQueueFamilyIndices())
 {
     // so that user pointer won't throw from null exception
-    if (m_Window != nullptr)
+    if (m_Surface.GetWindow() != nullptr)
     {
         SetCallbacks();
     }
@@ -66,52 +63,48 @@ void WindowsWindow::Resize(size_t width, size_t height) SRK_NOEXCEPT
 
 bool WindowsWindow::IsValid() const SRK_NOEXCEPT
 {
-    return m_Window != nullptr;
+    return m_Surface.IsValid();
 }
 
 WindowsWindow::~WindowsWindow() SRK_NOEXCEPT
 {
-    if (m_Window)
-    {
-        glfwDestroyWindow(m_Window);
-        m_Window = nullptr;
-    }
 }
 
-WindowsWindow::WindowsWindow(WindowsWindow&& other) SRK_NOEXCEPT : m_Window(nullptr), m_Surface()
+WindowsWindow::WindowsWindow(WindowsWindow&& other) SRK_NOEXCEPT : m_Surface()
 {
     *this = std::move(other);
 }
 
 WindowsWindow& WindowsWindow::operator=(WindowsWindow&& other) SRK_NOEXCEPT
 {
-    std::swap(m_Window, other.m_Window);
+    std::swap(m_Surface, other.m_Surface);
     return *this;
 }
 
 HWND WindowsWindow::GetRenderContext() const SRK_NOEXCEPT
 {
-    return glfwGetWin32Window(m_Window);
+    return glfwGetWin32Window(m_Surface.GetWindow());
 }
 
 void WindowsWindow::Update() SRK_NOEXCEPT
 {
-    glfwSwapBuffers(m_Window);
+    glfwSwapBuffers(m_Surface.GetWindow());
 }
 
 bool WindowsWindow::ShouldClose() const SRK_NOEXCEPT
 {
-    return glfwWindowShouldClose(m_Window);
+    return glfwWindowShouldClose(m_Surface.GetWindow());
 }
 
 void WindowsWindow::SetCallbacks() SRK_NOEXCEPT
 {
+    GLFWwindow* window = m_Surface.GetWindow();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwSetWindowUserPointer(m_Window, this);
+    glfwSetWindowUserPointer(window, this);
 
     glfwSetFramebufferSizeCallback(
-        m_Window, [](GLFWwindow* window, int width, int height) SRK_NOEXCEPT {
-            WindowsWindow* parent = reinterpret_cast<WindowsWindow*>(glfwGetWindowUserPointer(window));
+        window, [](GLFWwindow* win, int width, int height) SRK_NOEXCEPT {
+            WindowsWindow* parent = reinterpret_cast<WindowsWindow*>(glfwGetWindowUserPointer(win));
             parent->Resize(width, height);
         });
 }
