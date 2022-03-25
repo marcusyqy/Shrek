@@ -6,6 +6,7 @@
 
 #include "helper/Debug.h"
 #include "vulkan_core.h"
+#include "vulkan_win32.h"
 #include <GLFW/glfw3.h>
 
 namespace shrek::render {
@@ -120,6 +121,20 @@ VkResult createSwapChain(VkSwapchainKHR& swapChain, VkSurfaceKHR surface, SwapCh
     return vkCreateSwapchainKHR(gpu, &createInfo, nullptr, &swapChain);
 }
 
+VkResult acquireSwapChainImages(VkDevice device, VkSwapchainKHR swapChain, std::vector<VkImage>& images)
+{
+    images.clear();
+    uint32_t imageCount{};
+
+    VkResult result = vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+
+    if(result != VK_SUCCESS)
+        return result;
+
+    images.resize(imageCount);
+    return vkGetSwapchainImagesKHR(device, swapChain, &imageCount, images.data());
+}
+
 } // namespace
 
 Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWwindow* window, const QueueFamilyIndices& indices) SRK_NOEXCEPT :
@@ -135,30 +150,46 @@ Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWw
         SRK_CORE_CRITICAL("Surface was unable to be created with err : {}!", result);
         // just to make sure. maybe bug potential
         m_Surface = VK_NULL_HANDLE;
+        m_SwapChain = VK_NULL_HANDLE;
     }
-
-    // TODO: assert this
-    VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(gpu, indices.Graphics, m_Surface, &presentSupport);
-
-    if (!presentSupport)
+    else
     {
-        SRK_CORE_CRITICAL("Present support not available on this device on graphics queue family index");
-        std::exit(-1);
+        // TODO: assert this
+        m_SwapChainSupportDetails = querySwapChainSupport(gpu, m_Surface);
+
+        VkBool32 presentSupport{};
+        result = vkGetPhysicalDeviceSurfaceSupportKHR(gpu, indices.Graphics, m_Surface, &presentSupport);
+        if(result != VK_SUCCESS)
+        {
+            SRK_CORE_CRITICAL("vkGetPhysicalDeviceSurfaceSupportKHR failed with {}!", result);
+            std::exit(-1);
+        }
+        else if (!presentSupport)
+        {
+            SRK_CORE_CRITICAL("Present support not available on this device on graphics queue family index");
+            std::exit(-1);
+        }
+
+        // used to recreate and create initially
+        RecreateSwapChain();
     }
+}
 
-    m_SwapChainSupportDetails = querySwapChainSupport(gpu, m_Surface);
-
-    result = createSwapChain(m_SwapChain, m_Surface, m_SwapChainSupportDetails, m_Gpu, m_Window);
+void Surface::RecreateSwapChain()
+{
+    VkResult result = createSwapChain(m_SwapChain, m_Surface, m_SwapChainSupportDetails, m_Gpu, m_Window);
     if (result != VK_SUCCESS)
     {
         SRK_CORE_CRITICAL("SwapChain was unable to be created with err : {}!", result);
         // just to make sure. maybe bug potential
         m_SwapChain = VK_NULL_HANDLE;
     }
+    else
+    {
+        result = acquireSwapChainImages(m_Gpu, m_SwapChain, m_Images);
+    }
 }
 
-// serves as invalidated surface
 Surface::Surface() :
     m_Instance(VK_NULL_HANDLE), m_Gpu(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE), m_SwapChain(VK_NULL_HANDLE), m_Window(nullptr)
 {

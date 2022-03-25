@@ -33,6 +33,8 @@ public:
     GLFWwindow* GetWindow() const SRK_NOEXCEPT;
 
 private:
+    void RecreateSwapChain();
+
     VkInstance m_Instance;
     VkDevice m_Gpu;
 
@@ -41,6 +43,8 @@ private:
 
     SwapChainSupportDetails m_SwapChainSupportDetails;
     GLFWwindow* m_Window;
+
+    std::vector<VkImage> m_Images;
 };
 
 } // namespace shrek::render
