@@ -86,16 +86,35 @@ VkPresentModeKHR chooseSwapChainPresentMode(const std::vector<VkPresentModeKHR>&
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkResult createSwapChain(VkSwapchainKHR& swapChain, SwapChainSupportDetails swapChainSupportDetails, VkDevice gpu, GLFWwindow* window) SRK_NOEXCEPT
+VkResult createSwapChain(VkSwapchainKHR& swapChain, VkSurfaceKHR surface, SwapChainSupportDetails swapChainSupportDetails, VkDevice gpu, GLFWwindow* window) SRK_NOEXCEPT
 {
     VkSurfaceFormatKHR format      = chooseRightSurfaceFormat(swapChainSupportDetails.Formats);
     VkPresentModeKHR   presentMode = chooseSwapChainPresentMode(swapChainSupportDetails.PresentModes);
     VkExtent2D         extent      = chooseSwapExtent(window, swapChainSupportDetails.Capabilities);
+    uint32_t           imageCount  = swapChainSupportDetails.Capabilities.minImageCount + 1;
+
+    if (swapChainSupportDetails.Capabilities.maxImageCount > 0 && imageCount > swapChainSupportDetails.Capabilities.maxImageCount)
+        imageCount = swapChainSupportDetails.Capabilities.maxImageCount;
 
     VkSwapchainCreateInfoKHR createInfo{};
     // TODO: completely populate swap chain create info struct
     {
-
+        createInfo.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        createInfo.surface               = surface;
+        createInfo.minImageCount         = imageCount;
+        createInfo.imageFormat           = format.format;
+        createInfo.imageColorSpace       = format.colorSpace;
+        createInfo.imageExtent           = extent;
+        createInfo.imageArrayLayers      = 1; // not going to do 3d images yet or voxelling :D
+        createInfo.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+        createInfo.queueFamilyIndexCount = 0;
+        createInfo.pQueueFamilyIndices   = nullptr;
+        createInfo.preTransform          = swapChainSupportDetails.Capabilities.currentTransform;
+        createInfo.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        createInfo.presentMode           = presentMode;
+        createInfo.clipped               = VK_TRUE;
+        createInfo.oldSwapchain          = swapChain;
     }
 
     return vkCreateSwapchainKHR(gpu, &createInfo, nullptr, &swapChain);
@@ -130,7 +149,7 @@ Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWw
 
     m_SwapChainSupportDetails = querySwapChainSupport(gpu, m_Surface);
 
-    result = createSwapChain(m_SwapChain, m_SwapChainSupportDetails, m_Gpu, m_Window);
+    result = createSwapChain(m_SwapChain, m_Surface, m_SwapChainSupportDetails, m_Gpu, m_Window);
     if (result != VK_SUCCESS)
     {
         SRK_CORE_CRITICAL("SwapChain was unable to be created with err : {}!", result);
@@ -152,6 +171,7 @@ Surface::~Surface() SRK_NOEXCEPT
 
 void Surface::Exit() SRK_NOEXCEPT
 {
+    Invalidate();
     if (IsValid())
     {
         vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
@@ -170,6 +190,7 @@ void Surface::Exit() SRK_NOEXCEPT
 void Surface::Invalidate() SRK_NOEXCEPT
 {
     // to invalidate swapchain and start creating swapchain again
+    vkDestroySwapchainKHR(m_Gpu, m_SwapChain, nullptr);
 }
 
 Surface::operator bool() const SRK_NOEXCEPT
@@ -182,5 +203,10 @@ bool Surface::IsValid() const SRK_NOEXCEPT
     return m_Window != nullptr && m_Instance != VK_NULL_HANDLE && m_SwapChain != VK_NULL_HANDLE && m_Surface != VK_NULL_HANDLE && m_Gpu != VK_NULL_HANDLE;
 }
 
+
+GLFWwindow* Surface::GetWindow() const SRK_NOEXCEPT
+{
+    return m_Window;
+}
 
 } // namespace shrek::render
