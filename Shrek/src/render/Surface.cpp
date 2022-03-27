@@ -62,15 +62,13 @@ VkExtent2D chooseSwapExtent(GLFWwindow* window, const VkSurfaceCapabilitiesKHR& 
     }
     else
     {
-        int width, height;
+        int width{};
+        int height{};
         glfwGetFramebufferSize(window, &width, &height);
 
-        VkExtent2D actualExtent = {
-            static_cast<uint32_t>(width),
-            static_cast<uint32_t>(height)};
-
-        actualExtent.width  = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-        actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+        VkExtent2D actualExtent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+        actualExtent.width      = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+        actualExtent.height     = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 
         return actualExtent;
     }
@@ -106,7 +104,7 @@ VkResult createSwapChain(VkSwapchainKHR& swapChain, VkSurfaceKHR surface, SwapCh
         createInfo.imageFormat           = format.format;
         createInfo.imageColorSpace       = format.colorSpace;
         createInfo.imageExtent           = extent;
-        createInfo.imageArrayLayers      = 1; // not going to do 3d images yet or voxelling :D
+        createInfo.imageArrayLayers      = 1; // specifically for 3d type of rendering will only be using 1
         createInfo.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
         createInfo.queueFamilyIndexCount = 0;
@@ -115,7 +113,7 @@ VkResult createSwapChain(VkSwapchainKHR& swapChain, VkSurfaceKHR surface, SwapCh
         createInfo.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         createInfo.presentMode           = presentMode;
         createInfo.clipped               = VK_TRUE;
-        createInfo.oldSwapchain          = swapChain;
+        createInfo.oldSwapchain          = swapChain; // doesn't need to check for VK_NULL_HANDLE because it probably is at the first run...
     }
 
     return vkCreateSwapchainKHR(gpu, &createInfo, nullptr, &swapChain);
@@ -128,7 +126,7 @@ VkResult acquireSwapChainImages(VkDevice device, VkSwapchainKHR swapChain, std::
 
     VkResult result = vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
 
-    if(result != VK_SUCCESS)
+    if (result != VK_SUCCESS)
         return result;
 
     images.resize(imageCount);
@@ -149,17 +147,17 @@ Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWw
     {
         SRK_CORE_CRITICAL("Surface was unable to be created with err : {}!", result);
         // just to make sure. maybe bug potential
-        m_Surface = VK_NULL_HANDLE;
+        m_Surface   = VK_NULL_HANDLE;
         m_SwapChain = VK_NULL_HANDLE;
     }
     else
     {
-        // TODO: assert this
         m_SwapChainSupportDetails = querySwapChainSupport(gpu, m_Surface);
 
+        // TODO: assert this
         VkBool32 presentSupport{};
         result = vkGetPhysicalDeviceSurfaceSupportKHR(gpu, indices.Graphics, m_Surface, &presentSupport);
-        if(result != VK_SUCCESS)
+        if (result != VK_SUCCESS)
         {
             SRK_CORE_CRITICAL("vkGetPhysicalDeviceSurfaceSupportKHR failed with {}!", result);
             std::exit(-1);
@@ -175,13 +173,14 @@ Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWw
     }
 }
 
+// decided to put this here because this will likely be using all the resources from the render::Surface
 void Surface::RecreateSwapChain()
 {
     VkResult result = createSwapChain(m_SwapChain, m_Surface, m_SwapChainSupportDetails, m_Gpu, m_Window);
     if (result != VK_SUCCESS)
     {
         SRK_CORE_CRITICAL("SwapChain was unable to be created with err : {}!", result);
-        // just to make sure. maybe bug potential
+        // just to make sure. maybe bug potential, so that this will `invalidate` the SwapChain.
         m_SwapChain = VK_NULL_HANDLE;
     }
     else
@@ -202,7 +201,8 @@ Surface::~Surface() SRK_NOEXCEPT
 
 void Surface::Exit() SRK_NOEXCEPT
 {
-    Invalidate();
+    Invalidate(); // invalidate the swapchain 1st
+
     if (IsValid())
     {
         vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
@@ -220,8 +220,13 @@ void Surface::Exit() SRK_NOEXCEPT
 
 void Surface::Invalidate() SRK_NOEXCEPT
 {
-    // to invalidate swapchain and start creating swapchain again
-    vkDestroySwapchainKHR(m_Gpu, m_SwapChain, nullptr);
+    if (m_SwapChain)
+    {
+        // to invalidate swapchain and start creating swapchain again
+        vkDestroySwapchainKHR(m_Gpu, m_SwapChain, nullptr);
+        // set to null (fn will probably not set it to null since it is not taking in a reference)
+        m_SwapChain = VK_NULL_HANDLE;
+    }
 }
 
 Surface::operator bool() const SRK_NOEXCEPT

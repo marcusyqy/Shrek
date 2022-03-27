@@ -40,5 +40,4 @@ private:
 template <typename Type>
 bool Singleton<Type>::s_IsOnly = false;
 
-} // namespace shrek::interface
-
+} // namespace shrek::base

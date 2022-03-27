@@ -47,8 +47,8 @@ private:
     void Load() SRK_NOEXCEPT;
 
 private:
-    WindowManager                          m_WindowManager;
-    bool                                   m_Running;
+    WindowManager  m_WindowManager;
+    bool           m_Running;
     render::Engine m_RenderEngine;
 };
 

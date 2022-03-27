@@ -255,7 +255,7 @@ QueueFamilyIndicesHelper findQueueFamilies(VkPhysicalDevice device) SRK_NOEXCEPT
         if ((queueFamilyProp.queueFlags & VK_QUEUE_GRAPHICS_BIT) == VK_QUEUE_GRAPHICS_BIT)
         {
             indices.Graphics = idx;
-            if(vkGetPhysicalDeviceWin32PresentationSupportKHR(device, idx) == 0)
+            if (vkGetPhysicalDeviceWin32PresentationSupportKHR(device, idx) == 0)
                 SRK_CORE_WARN("idx doesn't support presentation but support graphics, {}", idx);
         }
         ++idx;

@@ -87,5 +87,4 @@ std::ostream& operator<<(std::ostream& os, VkResult result)
     using namespace std;
     return os << shrek::render::helper::ToString(result);
 }
-}
-
+} // namespace shrek::render

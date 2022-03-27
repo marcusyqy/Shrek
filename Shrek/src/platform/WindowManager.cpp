@@ -13,8 +13,7 @@ namespace shrek {
 
 using Singleton = base::Singleton<WindowManager>;
 
-WindowManager::WindowManager() SRK_NOEXCEPT
-    : Singleton("WindowManager")
+WindowManager::WindowManager() SRK_NOEXCEPT : Singleton("WindowManager")
 {
     if (!glfwInit())
     {

@@ -11,9 +11,9 @@ namespace shrek::render {
 
 struct SwapChainSupportDetails
 {
-    VkSurfaceCapabilitiesKHR Capabilities;
+    VkSurfaceCapabilitiesKHR        Capabilities;
     std::vector<VkSurfaceFormatKHR> Formats;
-    std::vector<VkPresentModeKHR> PresentModes;
+    std::vector<VkPresentModeKHR>   PresentModes;
 };
 
 class Surface
@@ -24,7 +24,7 @@ public:
 
     ~Surface() SRK_NOEXCEPT;
 
-    operator bool() const SRK_NOEXCEPT;
+         operator bool() const SRK_NOEXCEPT;
     bool IsValid() const SRK_NOEXCEPT;
 
     void Invalidate() SRK_NOEXCEPT;
@@ -36,13 +36,13 @@ private:
     void RecreateSwapChain();
 
     VkInstance m_Instance;
-    VkDevice m_Gpu;
+    VkDevice   m_Gpu;
 
-    VkSurfaceKHR m_Surface;
+    VkSurfaceKHR   m_Surface;
     VkSwapchainKHR m_SwapChain;
 
     SwapChainSupportDetails m_SwapChainSupportDetails;
-    GLFWwindow* m_Window;
+    GLFWwindow*             m_Window;
 
     std::vector<VkImage> m_Images;
 };
