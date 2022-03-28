@@ -16,9 +16,9 @@ using helper::QueueFamilyIndices;
 namespace {
 
 // Vulkan tutorial says to use this but for pc we probably don't need to use this to check for device support
-SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
+SwapchainSupportDetails querySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
-    SwapChainSupportDetails details{};
+    SwapchainSupportDetails details{};
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.Capabilities);
 
@@ -75,7 +75,7 @@ VkExtent2D chooseSwapExtent(GLFWwindow* window, const VkSurfaceCapabilitiesKHR& 
 }
 
 
-VkPresentModeKHR chooseSwapChainPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) SRK_NOEXCEPT
+VkPresentModeKHR chooseSwapchainPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) SRK_NOEXCEPT
 {
     for (const auto& presentMode : availablePresentModes)
     {
@@ -85,10 +85,10 @@ VkPresentModeKHR chooseSwapChainPresentMode(const std::vector<VkPresentModeKHR>&
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkResult createSwapChain(VkSwapchainKHR& swapChain, VkSurfaceKHR surface, SwapChainSupportDetails swapChainSupportDetails, VkDevice gpu, GLFWwindow* window) SRK_NOEXCEPT
+VkResult createSwapchain(VkSwapchainKHR& swapChain, VkSurfaceKHR surface, SwapchainSupportDetails swapChainSupportDetails, VkDevice gpu, GLFWwindow* window) SRK_NOEXCEPT
 {
     VkSurfaceFormatKHR format      = chooseRightSurfaceFormat(swapChainSupportDetails.Formats);
-    VkPresentModeKHR   presentMode = chooseSwapChainPresentMode(swapChainSupportDetails.PresentModes);
+    VkPresentModeKHR   presentMode = chooseSwapchainPresentMode(swapChainSupportDetails.PresentModes);
     VkExtent2D         extent      = chooseSwapExtent(window, swapChainSupportDetails.Capabilities);
     uint32_t           imageCount  = swapChainSupportDetails.Capabilities.minImageCount + 1;
 
@@ -119,7 +119,7 @@ VkResult createSwapChain(VkSwapchainKHR& swapChain, VkSurfaceKHR surface, SwapCh
     return vkCreateSwapchainKHR(gpu, &createInfo, nullptr, &swapChain);
 }
 
-VkResult acquireSwapChainImages(VkDevice device, VkSwapchainKHR swapChain, std::vector<VkImage>& images)
+VkResult acquireSwapchainImages(VkDevice device, VkSwapchainKHR swapChain, std::vector<VkImage>& images)
 {
     images.clear();
     uint32_t imageCount{};
@@ -139,7 +139,7 @@ Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWw
     m_Instance(instance),
     m_Gpu(lGpu),
     m_Surface(VK_NULL_HANDLE),
-    m_SwapChain(VK_NULL_HANDLE),
+    m_Swapchain(VK_NULL_HANDLE),
     m_Window(window)
 {
     VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &m_Surface);
@@ -148,11 +148,11 @@ Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWw
         SRK_CORE_CRITICAL("Surface was unable to be created with err : {}!", result);
         // just to make sure. maybe bug potential
         m_Surface   = VK_NULL_HANDLE;
-        m_SwapChain = VK_NULL_HANDLE;
+        m_Swapchain = VK_NULL_HANDLE;
     }
     else
     {
-        m_SwapChainSupportDetails = querySwapChainSupport(gpu, m_Surface);
+        m_SwapchainSupportDetails = querySwapchainSupport(gpu, m_Surface);
 
         // TODO: assert this
         VkBool32 presentSupport{};
@@ -169,28 +169,36 @@ Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWw
         }
 
         // used to recreate and create initially
-        RecreateSwapChain();
+        RecreateSwapchain();
     }
 }
 
 // decided to put this here because this will likely be using all the resources from the render::Surface
-void Surface::RecreateSwapChain()
+void Surface::RecreateSwapchain()
 {
-    VkResult result = createSwapChain(m_SwapChain, m_Surface, m_SwapChainSupportDetails, m_Gpu, m_Window);
+    VkResult result = createSwapchain(m_Swapchain, m_Surface, m_SwapchainSupportDetails, m_Gpu, m_Window);
     if (result != VK_SUCCESS)
     {
-        SRK_CORE_CRITICAL("SwapChain was unable to be created with err : {}!", result);
-        // just to make sure. maybe bug potential, so that this will `invalidate` the SwapChain.
-        m_SwapChain = VK_NULL_HANDLE;
+        SRK_CORE_CRITICAL("Swapchain was unable to be created with err : {}!", result);
+        // just to make sure. maybe bug potential, so that this will `invalidate` the Swapchain.
+        m_Swapchain = VK_NULL_HANDLE;
     }
     else
     {
-        result = acquireSwapChainImages(m_Gpu, m_SwapChain, m_Images);
+        result = acquireSwapchainImages(m_Gpu, m_Swapchain, m_Images);
+        if (result != VK_SUCCESS)
+        {
+            SRK_CORE_CRITICAL("Swapchain Images were unable to be acquired with err : {}!", result);
+            Invalidate();
+            m_Swapchain = VK_NULL_HANDLE;
+            // BUG: probably don't need to clear actually
+            m_Images.clear();
+        }
     }
 }
 
 Surface::Surface() :
-    m_Instance(VK_NULL_HANDLE), m_Gpu(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE), m_SwapChain(VK_NULL_HANDLE), m_Window(nullptr)
+    m_Instance(VK_NULL_HANDLE), m_Gpu(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE), m_Swapchain(VK_NULL_HANDLE), m_Window(nullptr)
 {
 }
 
@@ -220,12 +228,12 @@ void Surface::Exit() SRK_NOEXCEPT
 
 void Surface::Invalidate() SRK_NOEXCEPT
 {
-    if (m_SwapChain)
+    if (m_Swapchain)
     {
         // to invalidate swapchain and start creating swapchain again
-        vkDestroySwapchainKHR(m_Gpu, m_SwapChain, nullptr);
+        vkDestroySwapchainKHR(m_Gpu, m_Swapchain, nullptr);
         // set to null (fn will probably not set it to null since it is not taking in a reference)
-        m_SwapChain = VK_NULL_HANDLE;
+        m_Swapchain = VK_NULL_HANDLE;
     }
 }
 
@@ -236,7 +244,7 @@ Surface::operator bool() const SRK_NOEXCEPT
 
 bool Surface::IsValid() const SRK_NOEXCEPT
 {
-    return m_Window != nullptr && m_Instance != VK_NULL_HANDLE && m_SwapChain != VK_NULL_HANDLE && m_Surface != VK_NULL_HANDLE && m_Gpu != VK_NULL_HANDLE;
+    return m_Window != nullptr && m_Instance != VK_NULL_HANDLE && m_Swapchain != VK_NULL_HANDLE && m_Surface != VK_NULL_HANDLE && m_Gpu != VK_NULL_HANDLE;
 }
 
 

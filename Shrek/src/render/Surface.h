@@ -9,7 +9,7 @@
 
 namespace shrek::render {
 
-struct SwapChainSupportDetails
+struct SwapchainSupportDetails
 {
     VkSurfaceCapabilitiesKHR        Capabilities;
     std::vector<VkSurfaceFormatKHR> Formats;
@@ -33,15 +33,15 @@ public:
     GLFWwindow* GetWindow() const SRK_NOEXCEPT;
 
 private:
-    void RecreateSwapChain();
+    void RecreateSwapchain();
 
     VkInstance m_Instance;
     VkDevice   m_Gpu;
 
     VkSurfaceKHR   m_Surface;
-    VkSwapchainKHR m_SwapChain;
+    VkSwapchainKHR m_Swapchain;
 
-    SwapChainSupportDetails m_SwapChainSupportDetails;
+    SwapchainSupportDetails m_SwapchainSupportDetails;
     GLFWwindow*             m_Window;
 
     std::vector<VkImage> m_Images;
