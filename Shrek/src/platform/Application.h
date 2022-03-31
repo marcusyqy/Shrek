@@ -34,7 +34,7 @@ public:
     Application(ApplicationCmdLineArgs params) SRK_NOEXCEPT;
     ~Application() SRK_NOEXCEPT;
 
-    void Run() SRK_NOEXCEPT;
+    void Tick() SRK_NOEXCEPT;
 
     // no move no copy
     Application(const Application& other) = delete;
@@ -43,8 +43,9 @@ public:
     Application(Application&& other) = delete;
     Application operator=(Application&& other) = delete;
 
-private:
+    bool ShouldClose() SRK_NOEXCEPT;
     void Load() SRK_NOEXCEPT;
+    void Cleanup() SRK_NOEXCEPT;
 
 private:
     WindowManager  m_WindowManager;

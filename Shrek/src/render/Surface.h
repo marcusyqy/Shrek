@@ -45,6 +45,8 @@ private:
     GLFWwindow*             m_Window;
 
     std::vector<VkImage> m_Images;
+    VkFormat             m_Format;
+    VkExtent2D           m_Extent;
 };
 
 } // namespace shrek::render

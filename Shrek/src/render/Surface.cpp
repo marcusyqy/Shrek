@@ -85,12 +85,13 @@ VkPresentModeKHR chooseSwapchainPresentMode(const std::vector<VkPresentModeKHR>&
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkResult createSwapchain(VkSwapchainKHR& swapChain, VkSurfaceKHR surface, SwapchainSupportDetails swapChainSupportDetails, VkDevice gpu, GLFWwindow* window) SRK_NOEXCEPT
+VkResult createSwapchain(VkSwapchainKHR& swapChain, VkSurfaceKHR surface, SwapchainSupportDetails swapChainSupportDetails, VkDevice gpu, GLFWwindow* window, VkFormat& surfaceFormat, VkExtent2D& extent) SRK_NOEXCEPT
 {
     VkSurfaceFormatKHR format      = chooseRightSurfaceFormat(swapChainSupportDetails.Formats);
     VkPresentModeKHR   presentMode = chooseSwapchainPresentMode(swapChainSupportDetails.PresentModes);
-    VkExtent2D         extent      = chooseSwapExtent(window, swapChainSupportDetails.Capabilities);
-    uint32_t           imageCount  = swapChainSupportDetails.Capabilities.minImageCount + 1;
+    extent                         = chooseSwapExtent(window, swapChainSupportDetails.Capabilities);
+    uint32_t imageCount            = swapChainSupportDetails.Capabilities.minImageCount + 1;
+    surfaceFormat                  = format.format;
 
     if (swapChainSupportDetails.Capabilities.maxImageCount > 0 && imageCount > swapChainSupportDetails.Capabilities.maxImageCount)
         imageCount = swapChainSupportDetails.Capabilities.maxImageCount;
@@ -176,7 +177,7 @@ Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWw
 // decided to put this here because this will likely be using all the resources from the render::Surface
 void Surface::RecreateSwapchain()
 {
-    VkResult result = createSwapchain(m_Swapchain, m_Surface, m_SwapchainSupportDetails, m_Gpu, m_Window);
+    VkResult result = createSwapchain(m_Swapchain, m_Surface, m_SwapchainSupportDetails, m_Gpu, m_Window, m_Format, m_Extent);
     if (result != VK_SUCCESS)
     {
         SRK_CORE_CRITICAL("Swapchain was unable to be created with err : {}!", result);
@@ -211,7 +212,7 @@ void Surface::Exit() SRK_NOEXCEPT
 {
     Invalidate(); // invalidate the swapchain 1st
 
-    if (IsValid())
+    if (m_Instance != VK_NULL_HANDLE && m_Surface != VK_NULL_HANDLE)
     {
         vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
         m_Instance = VK_NULL_HANDLE;

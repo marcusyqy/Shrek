@@ -6,9 +6,22 @@
 int main(int argc, char** argv)
 {
     shrek::Log::Init();
-    shrek::Application app(
-        shrek::ApplicationCmdLineArgs{argc, argv});
-    app.Run();
+
+    // scope the creation of everything else
+    {
+        shrek::Application app(
+                shrek::ApplicationCmdLineArgs{argc, argv});
+
+        SRK_CORE_TRACE("Loading engine now");
+        app.Load();
+
+        while (!app.ShouldClose())
+        {
+            app.Tick();
+        }
+
+        SRK_CORE_INFO("Exitting from {} engine now...", "Shrek");
+    }
 
     shrek::Log::Exit();
     return 0;

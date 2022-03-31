@@ -75,14 +75,7 @@ void Application::Load() SRK_NOEXCEPT
 
     // it's safe to delete nullptr
     delete m_WindowManager.ReleaseWindow(loadingScreenName);
-}
 
-Application::~Application() SRK_NOEXCEPT = default;
-
-void Application::Run() SRK_NOEXCEPT
-{
-    SRK_CORE_TRACE("Loading engine now");
-    Load();
 
     SRK_CORE_INFO("Hello World! I am running from {}", "Shrek");
 
@@ -96,15 +89,24 @@ void Application::Run() SRK_NOEXCEPT
         params.TitleBar   = true;
     }
     m_WindowManager.AddWindow("Shrek Engine", new WindowsWindow(m_RenderEngine, params));
+}
 
-    while (m_Running)
-    {
-        // seems like an opengl cmd and will replace this with a vulkan equivalent soon
-        m_WindowManager.Update();
-        m_Running = !m_WindowManager.Empty();
-    }
+Application::~Application() SRK_NOEXCEPT = default;
 
+bool Application::ShouldClose() SRK_NOEXCEPT
+{
+    return !m_Running;
+}
+
+void Application::Cleanup() SRK_NOEXCEPT
+{
     SRK_CORE_INFO("Exitting from {} engine now...", "Shrek");
+}
+
+void Application::Tick() SRK_NOEXCEPT
+{
+    m_WindowManager.Update();
+    m_Running = !m_WindowManager.Empty();
 }
 
 } // namespace shrek
