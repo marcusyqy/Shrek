@@ -7,6 +7,8 @@ namespace shrek {
 
 
 namespace {
+using Singleton = base::Singleton<Application>;
+
 constexpr static size_t      loadingScreenWidth{640};
 constexpr static size_t      loadingScreenHeight{480};
 constexpr static WindowParam loadingScreenParams{
@@ -45,6 +47,7 @@ size_t ApplicationCmdLineArgs::Size() const SRK_NOEXCEPT
 }
 
 Application::Application() SRK_NOEXCEPT :
+    Singleton("Application"),
     m_WindowManager(),
     m_Running(true),
     m_RenderEngine()

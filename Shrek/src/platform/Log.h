@@ -28,16 +28,37 @@ private:
 } // namespace shrek
 
 
+#ifndef SRK_NO_DEBUG
+
 // Core log macros
-#define SRK_CORE_TRACE(...)    ::shrek::Log::GetCoreLogger()->trace(__VA_ARGS__)
-#define SRK_CORE_INFO(...)     ::shrek::Log::GetCoreLogger()->info(__VA_ARGS__)
-#define SRK_CORE_WARN(...)     ::shrek::Log::GetCoreLogger()->warn(__VA_ARGS__)
-#define SRK_CORE_ERROR(...)    ::shrek::Log::GetCoreLogger()->error(__VA_ARGS__)
-#define SRK_CORE_CRITICAL(...) ::shrek::Log::GetCoreLogger()->critical(__VA_ARGS__)
+#    define SRK_CORE_TRACE(...)    ::shrek::Log::GetCoreLogger()->trace(__VA_ARGS__)
+#    define SRK_CORE_INFO(...)     ::shrek::Log::GetCoreLogger()->info(__VA_ARGS__)
+#    define SRK_CORE_WARN(...)     ::shrek::Log::GetCoreLogger()->warn(__VA_ARGS__)
+#    define SRK_CORE_ERROR(...)    ::shrek::Log::GetCoreLogger()->error(__VA_ARGS__)
+#    define SRK_CORE_CRITICAL(...) ::shrek::Log::GetCoreLogger()->critical(__VA_ARGS__)
 
 // Client log macros
-#define SRK_TRACE(...)    ::shrek::Log::GetClientLogger()->trace(__VA_ARGS__)
-#define SRK_INFO(...)     ::shrek::Log::GetClientLogger()->info(__VA_ARGS__)
-#define SRK_WARN(...)     ::shrek::Log::GetClientLogger()->warn(__VA_ARGS__)
-#define SRK_ERROR(...)    ::shrek::Log::GetClientLogger()->error(__VA_ARGS__)
-#define SRK_CRITICAL(...) ::shrek::Log::GetClientLogger()->critical(__VA_ARGS__)
+#    define SRK_TRACE(...)    ::shrek::Log::GetClientLogger()->trace(__VA_ARGS__)
+#    define SRK_INFO(...)     ::shrek::Log::GetClientLogger()->info(__VA_ARGS__)
+#    define SRK_WARN(...)     ::shrek::Log::GetClientLogger()->warn(__VA_ARGS__)
+#    define SRK_ERROR(...)    ::shrek::Log::GetClientLogger()->error(__VA_ARGS__)
+#    define SRK_CRITICAL(...) ::shrek::Log::GetClientLogger()->critical(__VA_ARGS__)
+
+#else
+// Core log macros
+#    define SRK_CORE_TRACE(...)
+#    define SRK_CORE_INFO(...)
+#    define SRK_CORE_WARN(...)
+#    define SRK_CORE_ERROR(...)
+#    define SRK_CORE_CRITICAL(...)
+
+// Client log macros
+#    define SRK_TRACE(...)
+#    define SRK_INFO(...)
+#    define SRK_WARN(...)
+#    define SRK_ERROR(...)
+#    define SRK_CRITICAL(...)
+
+
+
+#endif

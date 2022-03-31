@@ -1,5 +1,6 @@
 #pragma once
 
+#include "base/Singleton.h"
 #include "defs.h"
 #include "WindowManager.h"
 #include <memory>
@@ -25,7 +26,7 @@ private:
     char** m_Arguments;
 };
 
-class Application
+class Application : private base::Singleton<Application>
 {
 public:
     Application() SRK_NOEXCEPT;
