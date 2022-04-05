@@ -1,0 +1,43 @@
+[format]
+command=./scripts/clang-format.bat
+output=terminal
+
+[gen-proj]
+command=./scripts/win-gen-proj.bat
+output=terminal
+
+[install]
+command=./scripts/set-up.bat
+output=terminal
+
+[dev-debug]
+command=./scripts/dev.bat debug
+output=terminal
+
+[dev-release]
+command=./scripts/dev.bat release
+output=terminal
+
+[dev-dist]
+command=./scripts/dev.bat dist
+output=terminal
+
+[clean-mod]
+command=./scripts/clean-modules.bat
+output=terminal
+
+[update-mod]
+command=git submodule update --remote
+output=terminal
+
+[build-debug]
+command=MsBuild.exe Shrek/Shrek.proj -property:Configuration=debug
+output=terminal
+
+[build-release]
+command=MsBuild.exe Shrek/Shrek.proj -property:Configuration=release
+output=terminal
+
+[build-dist]
+command=MsBuild.exe Shrek/Shrek.proj -property:Configuration=dist
+output=terminal
