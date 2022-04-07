@@ -6,7 +6,7 @@ output=terminal
 command=./scripts/win-gen-proj.bat
 output=terminal
 
-[install]
+[set-up]
 command=./scripts/set-up.bat
 output=terminal
 
@@ -31,13 +31,13 @@ command=git submodule update --remote
 output=terminal
 
 [build-debug]
-command=MsBuild.exe Shrek/Shrek.proj -property:Configuration=debug
+command=MsBuild.exe Shrek/Shrek.vcxproj -property:Configuration=debug
 output=terminal
 
 [build-release]
-command=MsBuild.exe Shrek/Shrek.proj -property:Configuration=release
+command=MsBuild.exe Shrek/Shrek.vcxproj -property:Configuration=release
 output=terminal
 
 [build-dist]
-command=MsBuild.exe Shrek/Shrek.proj -property:Configuration=dist
+command=MsBuild.exe Shrek/Shrek.vcxproj -property:Configuration=dist
 output=terminal

@@ -4,6 +4,7 @@
 
 #include <GLFW/glfw3.h>
 #include "helper/QueueFamilyIndices.h"
+#include "vulkan_core.h"
 
 #include <vector>
 
@@ -33,7 +34,8 @@ public:
     GLFWwindow* GetWindow() const SRK_NOEXCEPT;
 
 private:
-    void RecreateSwapchain();
+    void RecreateSwapchain() SRK_NOEXCEPT;
+    void Cleanup() SRK_NOEXCEPT;
 
     VkInstance m_Instance;
     VkDevice   m_Gpu;
@@ -44,9 +46,10 @@ private:
     SwapchainSupportDetails m_SwapchainSupportDetails;
     GLFWwindow*             m_Window;
 
-    std::vector<VkImage> m_Images;
-    VkFormat             m_Format;
-    VkExtent2D           m_Extent;
+    std::vector<VkImage>     m_Images;
+    std::vector<VkImageView> m_Views;
+    VkFormat                 m_Format;
+    VkExtent2D               m_Extent;
 };
 
 } // namespace shrek::render

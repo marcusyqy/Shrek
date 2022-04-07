@@ -141,7 +141,9 @@ Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWw
     m_Gpu(lGpu),
     m_Surface(VK_NULL_HANDLE),
     m_Swapchain(VK_NULL_HANDLE),
-    m_Window(window)
+    m_Window(window),
+    m_Images(),
+    m_Views()
 {
     VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &m_Surface);
     if (result != VK_SUCCESS)
@@ -174,9 +176,21 @@ Surface::Surface(VkInstance instance, VkPhysicalDevice gpu, VkDevice lGpu, GLFWw
     }
 }
 
-// decided to put this here because this will likely be using all the resources from the render::Surface
-void Surface::RecreateSwapchain()
+void Surface::Cleanup() SRK_NOEXCEPT
 {
+    for (auto view : m_Views)
+    {
+        vkDestroyImageView(m_Gpu, view, nullptr);
+    }
+
+    m_Views.clear();
+}
+
+// decided to put this here because this will likely be using all the resources from the render::Surface
+void Surface::RecreateSwapchain() SRK_NOEXCEPT
+{
+    Cleanup();
+
     VkResult result = createSwapchain(m_Swapchain, m_Surface, m_SwapchainSupportDetails, m_Gpu, m_Window, m_Format, m_Extent);
     if (result != VK_SUCCESS)
     {
@@ -192,14 +206,51 @@ void Surface::RecreateSwapchain()
             SRK_CORE_CRITICAL("Swapchain Images were unable to be acquired with err : {}!", result);
             Invalidate();
             m_Swapchain = VK_NULL_HANDLE;
-            // BUG: probably don't need to clear actually
+
+            // POTENTIAL BUG: probably don't need to clear actually
             m_Images.clear();
+        }
+
+        m_Views.resize(m_Images.size());
+
+        for (size_t i{}; i < m_Images.size(); ++i)
+        {
+            VkImageViewCreateInfo createInfo{};
+            createInfo.sType        = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image        = m_Images[i];
+            createInfo.viewType     = VK_IMAGE_VIEW_TYPE_2D;
+            createInfo.format       = m_Format;
+            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+            VkImageSubresourceRange& range{createInfo.subresourceRange};
+            range.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+            range.baseMipLevel   = 0;
+            range.levelCount     = 1;
+            range.baseArrayLayer = 0;
+            range.layerCount     = 1;
+
+            result = vkCreateImageView(m_Gpu, &createInfo, nullptr, &m_Views[i]);
+            if (result != VK_SUCCESS)
+            {
+                SRK_CORE_CRITICAL("Swapchain Images Views were unable to be acquired with err : {}!", result);
+                Invalidate();
+                break; // leaves this early.
+            }
         }
     }
 }
 
 Surface::Surface() :
-    m_Instance(VK_NULL_HANDLE), m_Gpu(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE), m_Swapchain(VK_NULL_HANDLE), m_Window(nullptr)
+    m_Instance(VK_NULL_HANDLE),
+    m_Gpu(VK_NULL_HANDLE),
+    m_Surface(VK_NULL_HANDLE),
+    m_Swapchain(VK_NULL_HANDLE),
+    m_Window(nullptr),
+    m_Images(),
+    m_Views()
 {
 }
 
@@ -235,6 +286,7 @@ void Surface::Invalidate() SRK_NOEXCEPT
         vkDestroySwapchainKHR(m_Gpu, m_Swapchain, nullptr);
         // set to null (fn will probably not set it to null since it is not taking in a reference)
         m_Swapchain = VK_NULL_HANDLE;
+        Cleanup();
     }
 }
 
@@ -245,6 +297,7 @@ Surface::operator bool() const SRK_NOEXCEPT
 
 bool Surface::IsValid() const SRK_NOEXCEPT
 {
+    // needs to have swapchain not invalid for it to be valid
     return m_Window != nullptr && m_Instance != VK_NULL_HANDLE && m_Swapchain != VK_NULL_HANDLE && m_Surface != VK_NULL_HANDLE && m_Gpu != VK_NULL_HANDLE;
 }
 

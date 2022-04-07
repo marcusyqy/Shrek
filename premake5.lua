@@ -20,7 +20,8 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = {}
 --IncludeDir["ImGui"] = "vendor/ImGui"
 --IncludeDir["ImGuizmo"] = "vendor/ImGui/ImGuizmo"
-IncludeDir["vulkan"] = "%{wks.location}/Shrek/vendor/vulkan/include"
+IncludeDir["vulkan"] = "%{wks.location}/Shrek/vendor/vulkan/include/vulkan"
+IncludeDir["glslang"] = "%{wks.location}/Shrek/vendor/vulkan/include/glslang"
 IncludeDir["GLFW"] = "%{wks.location}/Shrek/vendor/glfw/include"
 IncludeDir["spdlog"] = "%{wks.location}/Shrek/vendor/spdlog/include"
 
@@ -61,12 +62,13 @@ project "Shrek"
 	}
 
 	syslibdirs {
-		"%{wks.location}/Shrek/vendor/vulkan"
+		"%{wks.location}/Shrek/vendor/vulkan/lib"
 	}
 
 	 links {
          "GLFW",
 		--"ImGui",
+		"glslang.lib",
 		"vulkan-1.lib"
 	 }
 
