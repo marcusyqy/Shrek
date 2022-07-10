@@ -9,7 +9,7 @@ int main(int argc, char** argv)
 
     // scope the creation of everything else
     {
-        shrek::Application app(shrek::ApplicationCmdLineArgs{argc, argv});
+        shrek::Application app(shrek::ApplicationCmdLineArgs(argc, argv));
 
         SRK_CORE_TRACE("Loading engine now");
         app.Load();

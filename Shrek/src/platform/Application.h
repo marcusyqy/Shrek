@@ -14,6 +14,7 @@ namespace shrek {
  *  application but doing that may introduce a race condition where we may need to have some sort of
  *  mutex to control the access of this class
  */
+
 class ApplicationCmdLineArgs
 {
 public:

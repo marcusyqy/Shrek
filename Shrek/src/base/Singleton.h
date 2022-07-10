@@ -60,9 +60,8 @@ public:
 template <typename Type>
 bool Singleton<Type, true>::s_IsOnly = false;
 
-
-
 } // namespace shrek::base::details
+
 namespace shrek::base {
 
 template <typename Type>

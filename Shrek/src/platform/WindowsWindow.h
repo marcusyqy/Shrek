@@ -22,7 +22,7 @@ struct WindowParam
     std::string_view WindowName{"Shrek Engine"};
 };
 
-// TODO: Should we even have this class if the render/Surface is going to have ownership of the GLFWwindow ptr?
+// TODO(Marcus): Should we even have this class if the render/Surface is going to have ownership of the GLFWwindow ptr?
 class WindowsWindow
 {
 public:
@@ -38,7 +38,7 @@ public:
 
     void               Update() SRK_NOEXCEPT;
     bool               ShouldClose() const SRK_NOEXCEPT;
-    [[nodiscard]] HWND GetRenderContext() const SRK_NOEXCEPT;
+    // [[nodiscard]] HWND GetRenderContext() const SRK_NOEXCEPT;
     void               Resize(size_t width, size_t height) SRK_NOEXCEPT;
     bool               IsValid() const SRK_NOEXCEPT;
     void               SetCallbacks() SRK_NOEXCEPT;

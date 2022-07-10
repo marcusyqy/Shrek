@@ -24,9 +24,9 @@ GLFWwindow* CreateGLFWwindow(const WindowParam& param) SRK_NOEXCEPT
      * for now,
      * hopefully this parameter doesn't provide undef behaviors
     */
-    glfwWindowHint(GLFW_MAXIMIZED, param.Maximize);
-    glfwWindowHint(GLFW_RESIZABLE, param.Resizable);
-    glfwWindowHint(GLFW_DECORATED, param.TitleBar);
+    glfwWindowHint(GLFW_MAXIMIZED, static_cast<int>(param.Maximize));
+    glfwWindowHint(GLFW_RESIZABLE, static_cast<int>(param.Resizable));
+    glfwWindowHint(GLFW_DECORATED, static_cast<int>(param.TitleBar));
 
     window = glfwCreateWindow(
         static_cast<int>(param.Width),
@@ -81,10 +81,10 @@ WindowsWindow& WindowsWindow::operator=(WindowsWindow&& other) SRK_NOEXCEPT
     return *this;
 }
 
-HWND WindowsWindow::GetRenderContext() const SRK_NOEXCEPT
-{
-    return glfwGetWin32Window(m_Surface.GetWindow());
-}
+// HWND WindowsWindow::GetRenderContext() const SRK_NOEXCEPT
+// {
+//     return glfwGetWin32Window(m_Surface.GetWindow());
+// }
 
 void WindowsWindow::Update() SRK_NOEXCEPT
 {

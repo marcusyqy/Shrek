@@ -5,8 +5,8 @@
 
 namespace shrek {
 
-
 namespace {
+
 using Singleton = base::Singleton<Application>;
 
 constexpr static size_t      loadingScreenWidth{640};
